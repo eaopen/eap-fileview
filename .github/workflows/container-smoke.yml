@@ -1,0 +1,43 @@
+name: Smoke eap-fileview container
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Start published Java 21 and LibreOffice image
+        run: |
+          set -euo pipefail
+          docker pull ghcr.io/eaopen/eap-fileview:3.0.2
+          docker run -d --name fileview-smoke \
+            --publish 127.0.0.1:18012:8012 \
+            --env KK_CONTEXT_PATH=/fileview \
+            --env KK_SERVER_PORT=8012 \
+            --env KK_BASE_URL=http://localhost:18012/fileview/ \
+            --env KK_TRUST_HOST=localhost \
+            --env KK_FILE_DIR=/tmp/fileview-smoke \
+            ghcr.io/eaopen/eap-fileview:3.0.2
+          trap 'docker logs --tail 75 fileview-smoke || true; docker rm -f fileview-smoke || true' EXIT
+          ready=false
+          for i in $(seq 1 90); do
+            if ! docker inspect -f '{{.State.Running}}' fileview-smoke | grep -q true; then
+              echo 'Container exited before becoming healthy'
+              exit 1
+            fi
+            code="$(curl --silent --output /tmp/health.out --write-out '%{http_code}' \
+              http://127.0.0.1:18012/fileview/actuator/health || true)"
+            if [ "$code" = "200" ]; then
+              grep -q '"status":"UP"' /tmp/health.out
+              ready=true
+              break
+            fi
+            sleep 4
+          done
+          [ "$ready" = true ] || { echo 'Viewer health endpoint never became UP'; exit 1; }
+          echo 'Viewer container healthy; Java/LibreOffice startup successful'
