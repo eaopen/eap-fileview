@@ -11,9 +11,9 @@
 
 Use focused `feature/*` or `fix/*` branches from `dev`; review and merge PRs into `dev`. Validate the regular Maven JAR, security/portable tests, real preview flows and Docker compatibility as appropriate.
 
-## Stable release gate
+## Release policy
 
-`main` is not a second development line. It currently retains **3.0.1 / Boot 4.0.8**. Promote a tested `dev` commit to `main` via review after CI, Linux LibreOffice/SevenZip validation, Docker startup and representative CloudFile/Office/PDF/XMind previews. Then tag `v3.0.2` on the approved `main` commit.
+The repository intentionally has no permanent release-only branch. `dev` is both the only active development line and the source of reviewed release tags. After CI, Linux LibreOffice/SevenZip checks, Docker startup, and representative Office/PDF/XMind previews, tag the approved `dev` commit as `v3.0.2` (or the matching revision). Publishing remains a separate authorized action.
 
 ## Frozen Boot 3.5 reference
 

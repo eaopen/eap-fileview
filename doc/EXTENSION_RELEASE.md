@@ -3,7 +3,7 @@
 ## 项目定位与版本
 
 本项目是基于 kkFileView 5.0.3 的独立通用文件预览引擎，不依赖特定业务系统。
-版本管理机制、发布身份和账号参考 [eap-boot](https://github.com/eaopen/eap-boot)：`io.github.eaopen` Maven 组织、CI-friendly `${revision}` 属性、`ossrh`/ `cnb` 发布 profile、相同的项目所有权及授权治理。当前 dev 开发版本 `3.0.2`（main 稳定版暂为 3.0.1），上游 kkFileView 版本单独维护，不放进正式 Maven 发布号。新修订版可通过 `-Drevision=3.0.3` 覆盖，每次发布必须为新版本，不覆盖已经发布的版本。
+版本管理机制、发布身份和账号参考 [eap-boot](https://github.com/eaopen/eap-boot)：`io.github.eaopen` Maven 组织、CI-friendly `${revision}` 属性、`ossrh`/ `cnb` 发布 profile、相同的项目所有权及授权治理。当前 dev 版本 `3.0.2`（历史兼容分支 boot3 为 2.9.2），上游 kkFileView 版本单独维护，不放进正式 Maven 发布号。新修订版可通过 `-Drevision=3.0.3` 覆盖，每次发布必须为新版本，不覆盖已经发布的版本。
 
 **仅对外输出两类产物**：
 - 普通 Maven JAR：`io.github.eaopen:eap-fileview:3.0.2`，源码和 Javadoc 附件，供下游开发复用。
@@ -84,7 +84,7 @@ Java 21 本机可运行的单元/安全测试与 Maven 普通 JAR 构建已验�
 
 ## 持续构建普通 JAR
 
-GitHub workflow `jar-ci.yml` 在 main 推送及手动触发时运行 Java 21 的 105 项可移植测试，
+GitHub workflow `jar-ci.yml` 在 dev 推送、PR 以及手动触发时运行 Java 21 的 105 项可移植测试，
 只上传普通 eap-fileview JAR 到 GitHub Actions artifacts，便于 Maven Central/CNB 尚未发布时快速验证。
 这不是 Maven Central 发布，正式外部依赖仍通过有凭据的仓库发布流程管理。
 
@@ -112,9 +112,9 @@ The GitHub default branch is dev, formerly named boot4. This is the only
 actively maintained development branch, currently 3.0.2 / JDK21 / Boot 4.1.1.
 
 - Feature work / regular security fixes: feature/fix branch from dev -> tested PR into dev.
-- main: stable publication gate, still 3.0.1 / Boot 4.0.8 until dev passes
-  Linux LibreOffice/SevenZip, Docker startup and representative real preview tests.
-  Promote through an approved PR and create v3.0.2 tag on main.
+- No separate main/release branch. When CI, Linux LibreOffice/SevenZip,
+  Docker startup and representative real preview checks pass, tag the
+  approved dev commit v3.0.2 and publish from that commit.
 - boot3: frozen historical snapshot (2.9.2 / JDK21 / Boot 3.5.6).
   No separate maintenance, CI, releases or new work there.
 - Upstream kkFileView remains fetch-only, source patches may be selectively

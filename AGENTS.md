@@ -6,7 +6,6 @@ Active coding guidance for this repository. The original kkFileView agent instru
 
 - Project: `io.github.eaopen:eap-fileview`, based on kkFileView v5.0.3.
 - **`dev` is the GitHub default and only maintained development line:** revision 3.0.2, **JDK 21 / Spring Boot 4.1.1 / Spring Framework 7 / Jackson 3**.
-- `main` is the stable release gate (currently 3.0.1 / Boot 4.0.8), not a separate daily development branch.
 - `boot3` is a **frozen historical reference** (2.9.2 / Boot 3.5.6), not a maintained branch; do not add features, routine CI or separate release processes there.
 - The upstream remote is **fetch-only**. Preserve original kkFileView credits/licensing, avoid copying upstream Boot 3 POM or old deployment automation into `dev`.
 
@@ -39,7 +38,7 @@ Active coding guidance for this repository. The original kkFileView agent instru
 3. Review actual service/controller/template paths instead of guessing from upstream documentation.
 4. Maintain Java 21 / Boot 4.1 compatibility when bringing in upstream patches; cherry-pick or selectively reimplement tested generic fixes only.
 5. Do not publish to Central, overwrite immutable image tags, change unrelated production Nginx or touch historical `boot3` unless explicitly directed.
-6. Promote a release to `main` only after real CI, Linux dependency checks, Docker startup and relevant sample previews pass.
+6. Tag an approved `dev` commit for release only after real CI, Linux dependency checks, Docker startup and representative preview samples pass.
 
 ## Build and tests
 
