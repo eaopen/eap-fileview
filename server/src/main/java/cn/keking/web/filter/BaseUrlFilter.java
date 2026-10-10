@@ -6,6 +6,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
@@ -39,6 +40,19 @@ public class BaseUrlFilter implements Filter {
         String configBaseUrl = ConfigConstants.getBaseUrl();
 
         final HttpServletRequest servletRequest = (HttpServletRequest) request;
+        // Preview URLs may contain a base64-encoded, short-lived source token.
+        // Prevent browser referrer leakage and intermediary/browser caching
+        // for the entry page and other URL-bearing preview endpoints.
+        String path = servletRequest.getRequestURI();
+        if (response instanceof HttpServletResponse servletResponse &&
+                (path.endsWith("/onlinePreview") ||
+                 path.endsWith("/picturesPreview") ||
+                 path.endsWith("/getCorsFile") ||
+                 path.endsWith("/addTask"))) {
+            servletResponse.setHeader("Referrer-Policy", "no-referrer");
+            servletResponse.setHeader("Cache-Control", "private, no-store");
+        }
+
         //1、支持通过 http header 中 X-Base-Url 来动态设置 baseUrl 以支持多个域名/项目的共享使用
         final String urlInHeader = servletRequest.getHeader("X-Base-Url");
         if (StringUtils.isNotEmpty(urlInHeader)) {
