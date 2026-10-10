@@ -2,52 +2,54 @@
 
 ## 项目定位与版本
 
-版本规则与 [eap-boot](https://github.com/eaopen/eap-boot) 保持一致：`io.github.eaopen` Maven 组织、CI-friendly `${revision}` 属性、`ossrh`/ `cnb` 发布 profile、相同的项目所有权及授权治理。当前 EAP 发布版 `2.9.2`，上游 kkFileView 版本单独维护，不放进正式 Maven 发布号。修订版通过 `-Drevision=2.9.3` 覆盖，每次发布必须为新版本，不覆盖已经发布的版本。
+本项目是基于 kkFileView 5.0.3 的独立通用文件预览引擎，不依赖特定业务系统。
+版本管理机制、发布身份和账号参考 [eap-boot](https://github.com/eaopen/eap-boot)：`io.github.eaopen` Maven 组织、CI-friendly `${revision}` 属性、`ossrh`/ `cnb` 发布 profile、相同的项目所有权及授权治理。当前 dev 开发版本 `3.0.2`（main 稳定版暂为 3.0.1），上游 kkFileView 版本单独维护，不放进正式 Maven 发布号。新修订版可通过 `-Drevision=3.0.3` 覆盖，每次发布必须为新版本，不覆盖已经发布的版本。
 
 **仅对外输出两类产物**：
-- 普通 Maven JAR：`io.github.eaopen:eap-fileview:2.9.2`，源码和 Javadoc 附件，供下游开发复用。
-- Docker 镜像：`ghcr.io/eaopen/eap-fileview:2.9.2`，独立启动运行。
+- 普通 Maven JAR：`io.github.eaopen:eap-fileview:3.0.2`，源码和 Javadoc 附件，供下游开发复用。
+- Docker 镜像：`ghcr.io/eaopen/eap-fileview:3.0.2`，独立启动运行。
 
 不再创建 Spring Boot Fat JAR、`-exec.jar`、压缩分发包。Maven `package` 额外把已解析的 **运行依赖 JAR** 复制到 `server/target/dependency/`，只供 Docker 中间镜像组装使用，不是另一个发行物。
 
 ## JDK 兼容性
 
-**版本号与 eap-boot 同步，不代表运行 Java 版本一致。** 当前 eap-boot 的 Java 17 和本项目 kkFileView 5.0.3/Java 21 应区分。
-不允许把 `2.9.2` 当成 JDK 17 兼容承诺。若仍有 Java 17 环境，先独立 Docker 服务化，通过 HTTP 预览接口调用，避免运行时冲突。
+**账号及发布治理与 eap-boot 共用，版本独立维护。** 本项目 JDK 21 + Spring Boot 4.1.1 + Spring Framework 7。
+普通 Maven JAR 面向 JDK 21 / Spring Boot 4.1 的使用方；其他环境可通过 Docker HTTP 服务接入。
+不允许把 `3.0.2` 当成 JDK 17 兼容承诺。若仍有 Java 17 环境，先独立 Docker 服务化，通过 HTTP 预览接口调用，避免运行时冲突。
 
+## 普通 JAR 二次开发
 
-## 普通 JAR 扩展
-
-下游应用通过标准 Maven 依赖引用通用预览组件，应用专属模型、账号、数据库和其他服务由使用方负责：
+下游使用 Maven 依赖，保留自己的业务模型、登录、授权、数据库、MQ 和独立启动类：
 
 ```xml
 <dependency>
   <groupId>io.github.eaopen</groupId>
   <artifactId>eap-fileview</artifactId>
-  <version>2.9.2</version>
+  <version>3.0.2</version>
 </dependency>
 ```
 
+Spring Boot 应用通过 `@Import(EapFileViewComponents.class)` 导入通用组件，可选注册 `FilePreviewProvider` 或 `OfficePreviewFallbackConverter`。未提供扩展时使用默认预览实现；业务特定代码不进入本项目。
 
 ## Docker 镜像职责、构建和使用
 
 ### 稳定中间镜像（低频）
 
-`ghcr.io/eaopen/eap-fileview-base:java21-lo-r1`：
+`ghcr.io/eaopen/eap-fileview-base:java21-sb41-r1`：
 Ubuntu 24.04 + OpenJDK 21 + LibreOffice + 开源中文字体 + **Maven 已解析运行时依赖**。
 该镜像只在 Java/LibreOffice/字体/依赖版本发生实际变化时重新发布；**不随应用修订版每次重建**。
 
 ```bash
 mvn -B -pl server -am -DskipTests package
 docker build -f docker/Dockerfile.base \
-  -t ghcr.io/eaopen/eap-fileview-base:java21-lo-r1 .
+  -t ghcr.io/eaopen/eap-fileview-base:java21-sb41-r1 .
 ```
 
 基础镜像 GitHub Actions：`.github/workflows/base-image.yml`，手动触发，使用 GHCR GitHub Token 身份登录；变更中间镜像后需要手动提升 `java21-lo-rN` 稳定标签，不能复写旧稳定发行版。不要把运行依赖拷入源码 Git 仓库。
 
 ### 最终应用镜像（按业务版本）
 
-`ghcr.io/eaopen/eap-fileview:2.9.2` 只在稳定中间镜像上复制普通 JAR 和默认配置，以 Java classpath 启动 `cn.keking.ServerMain`。
+`ghcr.io/eaopen/eap-fileview:3.0.2` 只在稳定中间镜像上复制普通 JAR 和默认配置，以 Java classpath 启动 `cn.keking.ServerMain`。
 
 ```bash
 docker compose --env-file .env.example -f compose.yaml -f compose.build.yaml build
@@ -57,7 +59,7 @@ cp .env.example .env
 docker compose up -d
 ```
 
-GHCR 最终镜像工作流：`.github/workflows/images.yml`，采用 `revision` 作为应用标签；若使用 Git tag，应为 `v2.9.2`。
+GHCR 最终镜像工作流：`.github/workflows/images.yml`，采用 `revision` 作为应用标签；若使用 Git tag，应为 `v3.0.2`。
 
 ## Maven 仓库与发布身份
 
@@ -90,12 +92,35 @@ Aspose.CAD 25.10 属于独立的第三方商业依赖。发布包含该 JAR 的�
 应核实组织已获得适用的使用和分发许可；如无分发权，应将它作为下游自行装配的可选 CAD 扩展。
 
 
-## Development maintenance branches (2026-10-10)
+## Spring Boot 4 upgrade validation (2026-10-10)
 
-This document describes the dev compatibility branch:
-- dev continues as release revision 2.9.2 on JDK21 + Spring Boot 3.5.6, matching upstream kkFileView v5.0.3.
-- boot4 is the separate development branch for release 3.0.2 on JDK21 + Spring Boot 4.1.1.
-- main remains the stable release gate for 3.0.1 until the Boot4 upgrade qualifies for promotion.
+Official kkFileView v5.0.3 is based on Boot 3.5.6. eap-fileview upgrades
+independently to JDK 21 / Boot 4.1.1 / Framework 7 / Jackson 3.
+Changes include WebMVC and RestClient starters, Jackson 3 serialization APIs,
+ServerProperties relocation, removed HttpClient connect-timeout factory API,
+TestRestTemplate test module and Boot 4 liveness/readiness default settings.
+105 portable tests pass. Linux-specific LibreOffice/SevenZip integration tests remain to run.
 
-Do not merge Boot4 POM/runtime dependencies into dev. Cherry-pick isolated generic fixes
-only after verifying on the Spring Boot 3.5 test suite. Refer to doc/BRANCHING.md.
+Runtime dependency JARs are baked into the stable base image, so Boot 3 to Boot 4
+requires a NEW base image tag java21-sb41-r1. Never reuse the Boot 3 dependency base
+tag java21-lo-r1 for Boot 4 jars.
+
+
+## Branch and release workflow (2026-10-10)
+
+The GitHub default branch is dev, formerly named boot4. This is the only
+actively maintained development branch, currently 3.0.2 / JDK21 / Boot 4.1.1.
+
+- Feature work / regular security fixes: feature/fix branch from dev -> tested PR into dev.
+- main: stable publication gate, still 3.0.1 / Boot 4.0.8 until dev passes
+  Linux LibreOffice/SevenZip, Docker startup and representative real preview tests.
+  Promote through an approved PR and create v3.0.2 tag on main.
+- boot3: frozen historical snapshot (2.9.2 / JDK21 / Boot 3.5.6).
+  No separate maintenance, CI, releases or new work there.
+- Upstream kkFileView remains fetch-only, source patches may be selectively
+  ported to dev without replacing the Boot 4.1 Maven dependency definitions.
+
+Output remains regular Maven JAR + Docker image, without executable JAR.
+The stable runtime dependencies are pinned to java21-sb41-r1 (not the old Boot 4.0
+base java21-sb4-r1). Publishing identities and authorizations use the same
+eap-boot organization settings. See [BRANCHING.md](BRANCHING.md).

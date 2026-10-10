@@ -1,238 +1,76 @@
-# AGENTS.md
+# AGENTS.md — eap-fileview
 
-This document is for coding agents and automation tools working in this repository.
+Active coding guidance for this repository. The original kkFileView agent instructions are preserved at [doc/kkfileview/AGENTS.md](doc/kkfileview/AGENTS.md) as history; **this file supersedes them**.
 
-## Project Overview
+## Scope and branches
 
-- Project: `kkFileView`
-- Stack: Spring Boot + Freemarker + Redis/Redisson (optional) + JODConverter + front-end preview pages
-- Main module: `server`
-- Default local URL: `http://127.0.0.1:8012/`
-- Production demo: `https://file.kkview.cn/`
+- Project: `io.github.eaopen:eap-fileview`, based on kkFileView v5.0.3.
+- **`dev` is the GitHub default and only maintained development line:** revision 3.0.2, **JDK 21 / Spring Boot 4.1.1 / Spring Framework 7 / Jackson 3**.
+- `main` is the stable release gate (currently 3.0.1 / Boot 4.0.8), not a separate daily development branch.
+- `boot3` is a **frozen historical reference** (2.9.2 / Boot 3.5.6), not a maintained branch; do not add features, routine CI or separate release processes there.
+- The upstream remote is **fetch-only**. Preserve original kkFileView credits/licensing, avoid copying upstream Boot 3 POM or old deployment automation into `dev`.
 
-This repository is a document preview service. Most user-facing work falls into one of these areas:
+## Product boundaries
 
-1. preview routing and file-type dispatch
-2. conversion pipelines for Office / PDF / CAD / archives / images
-3. Freemarker preview templates under `server/src/main/resources/web`
-4. CI, E2E fixtures, and production deployment automation
+- Generic preview engine: HTTP(S) sources, format identification, preview routing and conversion, cache, FreeMarker/static viewers.
+- The calling application is responsible for identities, permissions, storage, versions, and short-lived file access URLs.
+- Downstream applications may consume the regular JAR or HTTP endpoint, keeping domain models, proprietary converters and authentication integrations outside this repository.
+- Reuse existing generic interfaces before adding abstractions: `FilePreviewProvider`, `OfficePreviewFallbackConverter`, `EapFileViewComponents`.
+- Do not weaken URL/host trust controls, path validation, temporary URL secrecy, or source-file integrity for convenience.
 
-## Repository Layout
+## Project layout
 
-- `server/`
-  Main application code, templates, config, packaged artifacts
-- `server/src/main/java/cn/keking/`
-  Core Java application code
-- `server/src/main/resources/web/`
-  Freemarker preview templates
-- `server/src/main/resources/static/`
-  Front-end static assets used by preview pages
-- `server/src/main/config/`
-  Main runtime config files
-- `server/src/main/bin/`
-  Local startup/dev scripts
-- `tests/e2e/`
-  Playwright-based end-to-end tests and fixtures
-- `.github/workflows/`
-  CI and deployment workflows
-- `.github/scripts/`
-  Windows production deployment scripts over WinRM
+- `pom.xml`: version `revision`, JDK and Boot dependency versions.
+- `server/pom.xml`: build a **regular JAR**; copy runtime dependency JARs for Docker. No executable Boot JAR.
+- `server/src/main/java/cn/keking/`: preview engine and `ServerMain`.
+- `server/src/main/java/io/github/eaopen/fileview/`: embeddable Spring component entry.
+- `server/src/main/resources/web/`: FreeMarker viewer templates.
+- `server/src/main/resources/static/`: viewer JS/CSS/assets.
+- `server/src/main/config/`: application and test runtime properties.
+- `Dockerfile`: thin app layer; `docker/Dockerfile.base`: stable Java/LibreOffice/dependencies layer.
+- `compose.yaml` and `compose.build.yaml`: pull-only and local-build Compose configurations.
+- `.github/workflows/`: active GitHub CI, CNB/Central Maven publishing and image workflows.
+- `doc/kkfileview/`: preserved upstream README, original AGENTS, CI/E2E notes. These are **not current runbooks**.
 
-## Key Entry Points
+## Development workflow
 
-- App entry:
-  - `server/src/main/java/cn/keking/ServerMain.java`
-- Preview controller:
-  - `server/src/main/java/cn/keking/web/controller/OnlinePreviewController.java`
-- File attribute parsing / request handling:
-  - `server/src/main/java/cn/keking/service/FileHandlerService.java`
-- Office preview flow:
-  - `server/src/main/java/cn/keking/service/impl/OfficeFilePreviewImpl.java`
-- PDF preview flow:
-  - `server/src/main/java/cn/keking/service/impl/PdfFilePreviewImpl.java`
-- Archive extraction:
-  - `server/src/main/java/cn/keking/service/CompressFileReader.java`
+1. Start from `dev`. Use a short-lived `feature/*` or `fix/*` branch when practical; open PRs back to `dev`.
+2. Group commits by meaningful capability (preview, source, Office, Docker, publication, docs), keeping diffs focused and tests proportional.
+3. Review actual service/controller/template paths instead of guessing from upstream documentation.
+4. Maintain Java 21 / Boot 4.1 compatibility when bringing in upstream patches; cherry-pick or selectively reimplement tested generic fixes only.
+5. Do not publish to Central, overwrite immutable image tags, change unrelated production Nginx or touch historical `boot3` unless explicitly directed.
+6. Promote a release to `main` only after real CI, Linux dependency checks, Docker startup and relevant sample previews pass.
 
-## Important Templates
+## Build and tests
 
-- `server/src/main/resources/web/compress.ftl`
-  Archive directory/tree preview page
-- `server/src/main/resources/web/pdf.ftl`
-  PDF preview container page
-- `server/src/main/resources/web/picture.ftl`
-  Single image preview page
-- `server/src/main/resources/web/officePicture.ftl`
-  Office/PDF image-mode preview page
-- `server/src/main/resources/web/officeweb.ftl`
-  Front-end xlsx/html preview page
-
-When debugging UX issues, inspect the exact template selected by the preview flow first. Do not assume two similar preview pages share the same CSS or behavior.
-
-## Local Development
-
-### Recommended dev mode
-
-Use:
+From the repo root on JDK 21 / Maven 3.9:
 
 ```bash
-./server/src/main/bin/dev.sh
+mvn -B -pl server -am -DskipTests clean package
+mvn -B -pl server -am \
+  '-Dtest=*,!EncodingTests,!ServerMainTests,!ArchiveTraversalSecurityTests' \
+  -Dsurefire.failIfNoSpecifiedTests=false test
 ```
 
-This runs Spring Boot with resource hot reload using:
+The portable suite excludes three tests requiring local LibreOffice and/or SevenZipJBinding platform support. Do not present those tests as passing without a suitable environment and actual results. Use targeted tests, representative Office/PDF/XMind/archive/CAD samples, and E2E checks when changing format behavior.
 
-- `spring-boot:run`
-- `-Dspring-boot.run.addResources=true`
-- `server/src/main/config/application.properties`
+## Deployment and publishing
 
-For front-end template or CSS/JS edits, prefer `dev.sh` over rebuilding jars repeatedly.
+- Ordinary Maven dependency: `io.github.eaopen:eap-fileview:3.0.2`.
+- Stable Docker base: `ghcr.io/eaopen/eap-fileview-base:java21-sb41-r1`; final image: `ghcr.io/eaopen/eap-fileview:3.0.2`. Do not reuse the Boot 4.0 runtime-dependency base for Boot 4.1.
+- The base includes Java 21, LibreOffice, fonts and resolved dependencies; the app layer adds only regular JAR and config. Local build must prepare Maven output first.
+- Central and CNB use **the same organization publishing identity and authorization practices as eap-boot**. Credentials belong in GitHub Actions environments / private Maven settings, never in code.
+- No `systemPath` JARs, redistributable unlicensed commercial libraries, leaked signing keys or invented publication claims.
+- Docker and Maven Central availability must be verified independently; compilation alone does not establish release availability.
 
-### Jar build
+## Diagnosing previews
 
-```bash
-mvn -q -pl server -DskipTests package
-```
+Follow URL trust/attribute parsing → `FilePreviewFactory` and chosen handler → fetch/conversion/cache → FreeMarker viewer/assets. Check relevant modules such as `OnlinePreviewController`, `FileHandlerService`, `OfficeFilePreviewImpl`, `PdfFilePreviewImpl`, `CompressFileReader`, `web/pdf.ftl`, `web/xmind.ftl` and `web/compress.ftl`.
 
-### Main test command used in CI
+For rendering failures, verify actual response content and short-lived ticket behavior (not only HTTP status). Never log signed full source URLs or silently change the original document. State what passed, what was not tested, and whether config affects only DEV or runtime deployment.
 
-```bash
-mvn -B package -Dmaven.test.skip=true --file pom.xml
-```
+## Authoritative docs
 
-## Configuration Notes
+[README.cn.md](README.cn.md) · [README.md](README.md) · [doc/BRANCHING.md](doc/BRANCHING.md) · [doc/EXTENSION_RELEASE.md](doc/EXTENSION_RELEASE.md) · [HTTP preview integration](doc/HTTP_PREVIEW_INTEGRATION.md) · [Preview capability review](doc/PREVIEW_CAPABILITY_REVIEW.md).
 
-Primary runtime config used by the scripts and defaults committed in this repository:
-
-- `server/src/main/config/application.properties`
-
-Optional environment-specific config:
-
-- `server/src/main/config/test.properties`
-
-Be careful: the repository defaults point at `application.properties`. If a deployment environment explicitly starts the app with `test.properties`, treat that as an environment-specific override rather than the repository default. Always verify the actual startup command before assuming which config file is active.
-
-Examples of config that commonly affects behavior:
-
-- `office.preview.type`
-- `office.preview.switch.disabled`
-- `trust.host`
-- `not.trust.host`
-- `file.upload.disable`
-
-## Preview Behavior Notes
-
-- Office files can render in `pdf` mode or `image` mode.
-- PDF preview uses `pdf.ftl`.
-- Single images use `picture.ftl`.
-- Office image-mode previews use `officePicture.ftl`.
-- Archive previews are not simple file lists; they can load nested previews via the archive UI in `compress.ftl`.
-
-When changing preview defaults, verify both:
-
-1. server-side default config
-2. front-end mode-switch links/buttons
-
-## Archive Preview Notes
-
-Archive preview is a sensitive area because it combines:
-
-- directory tree generation
-- extraction to disk
-- nested preview URL construction
-- inline iframe loading
-
-If an archive-contained Office file gets stuck on loading:
-
-1. verify the extracted file on disk is not corrupted
-2. verify conversion output exists
-3. verify the preview template points to the correct generated artifact
-4. verify the running Office manager / LibreOffice process is healthy
-
-Do not assume “loading forever” is a front-end issue.
-
-## Testing
-
-### Targeted Java tests
-
-Example targeted test:
-
-```bash
-mvn -q -pl server -Dtest=PdfViewerCompatibilityTests test
-```
-
-### E2E tests
-
-See:
-
-- `tests/e2e/README.md`
-
-PR E2E currently covers:
-
-- common preview smoke tests
-- Office smoke tests
-- archive smoke tests
-- basic security and performance checks
-
-## CI / Deployment
-
-### CI
-
-- `maven.yml`
-  - builds on `push` to `master`
-  - builds on PRs targeting `master`
-- `pr-e2e-mvp.yml`
-  - runs E2E on PRs to `master`
-
-### Production deployment
-
-- `master-auto-deploy.yml`
-  - triggers on push to `master`
-  - deploys to Windows over WinRM
-
-Deployment script:
-
-- `.github/scripts/remote_windows_deploy.ps1`
-
-Important operational detail:
-
-- the committed `bin/startup.bat` in this repo points at `..\config\application.properties`
-- if production uses a different config file, treat that as an out-of-repo server override rather than a repository default
-
-If a production config change “does not take effect”, inspect the actual startup command or deployed `startup.bat` on the server first and verify which config file path it is using.
-
-## Working Conventions For Agents
-
-- Prefer minimal, targeted changes over wide refactors.
-- Inspect the active preview template before editing CSS.
-- Verify whether behavior is controlled by config, back-end routing, or front-end template logic before changing code.
-- For production/debug tasks, distinguish clearly between:
-  - repository source defaults
-  - deployed server config
-  - runtime process arguments
-- When changing defaults, mention whether the change affects:
-  - local dev only
-  - repository default config
-  - deployed server config
-  - existing query-param overrides
-
-## Suggested Validation Checklist
-
-For preview-related changes, validate as many of these as apply:
-
-1. target URL returns `200`
-2. selected template is the expected one
-3. generated intermediate artifacts exist when required
-4. target UI element or style change is actually present in rendered HTML
-5. targeted Java test passes
-6. relevant E2E path is still compatible
-
-## Non-Goals
-
-This file is not a replacement for user-facing product documentation. Keep it focused on helping coding agents navigate the codebase and make correct changes faster.
-
-
-## Generic eap-fileview boundary (2026-10-10)
-
-This is an independent general-purpose previewer based on kkFileView v5.0.3.
-CloudFile is an optional default consumer, not a required dependency.
-workflows, business-specific authentication, schema and storage adapters stay downstream.
-Prefer upstream v5 facilities first, and bring in only proven generic fixes with tests.
+Original upstream reference: [doc/kkfileview/README.cn.md](doc/kkfileview/README.cn.md), [doc/kkfileview/README.md](doc/kkfileview/README.md), [doc/kkfileview/AGENTS.md](doc/kkfileview/AGENTS.md). Their removed Windows startup scripts and upstream CI workflows are not part of the active `dev` release workflow.

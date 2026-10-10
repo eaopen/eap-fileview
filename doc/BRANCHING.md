@@ -1,27 +1,28 @@
-# Branch strategy — eap-fileview
+# Branch and release policy — eap-fileview
 
-## Long-lived branches
+## Only actively maintained development branch
 
-| Branch | Role | Maven revision | Java | Spring Boot | Upstream |
-|---|---|---|---|---|---|
-| `dev` | kkFileView compatibility/maintenance | 2.9.2 | 21 | 3.5.6 | kkFileView v5.0.3 |
-| `main` | stable release gate (not a daily development line) | 3.0.1 until next promoted release | 21 | 4.0.8 | previously validated version |
+**`dev` is the GitHub default and the only actively maintained development line.** It is the former `boot4` branch:
 
-The EAP fileview Maven group remains `io.github.eaopen`. Authentication, Maven Central signing and CNB credentials follow the existing eap-boot publication system. The EAP version does **not** equal the upstream kkFileView source version.
+- Release `revision`: **3.0.2**
+- Runtime: **JDK 21 / Spring Boot 4.1.1 / Spring Framework 7**
+- Source baseline: kkFileView 5.0.3 with selected general-purpose fixes
+- Downstream Java 21 / Spring Boot 4.1 applications can embed the regular JAR or use the HTTP preview interface.
 
-## Contribution and release flow
+Use focused `feature/*` or `fix/*` branches from `dev`; review and merge PRs into `dev`. Validate the regular Maven JAR, security/portable tests, real preview flows and Docker compatibility as appropriate.
 
-1. Start short-lived `feature/*` or `fix/*` branches from `boot4` for new development or `dev` for upstream compatibility maintenance.
-2. Open a PR to its source branch; require Java 21 build, the portable test suite and a plain-JAR consumer compile check.
-3. Transport selected generic fixes across lines by cherry-pick. **Never merge the full `dev` history into `boot4`**, because that would drag Spring Boot 3.5 POM/config into Boot 4.1.
-4. Keep `main` as stable publication; when `boot4` is checked on Linux with LibreOffice, SevenZip JNI, Docker startup and representative CloudFile files, merge it to `main` through a PR and tag `v3.0.2` there.
-5. For a 2.9.x maintenance release from `dev`, use a separate approved release decision and tag; don't change the Boot 4 mainline accidentally.
+## Stable release gate
 
-## Images and integration boundaries
+`main` is not a second development line. It currently retains **3.0.1 / Boot 4.0.8**. Promote a tested `dev` commit to `main` via review after CI, Linux LibreOffice/SevenZip validation, Docker startup and representative CloudFile/Office/PDF/XMind previews. Then tag `v3.0.2` on the approved `main` commit.
 
-- `dev` uses Java 21 and Boot 3.5.6, matching upstream dependency expectations.
-- `boot4` 3.0.2 uses a new runtime dependency image tag `java21-sb41-r1`; it must not reuse `java21-sb4-r1` from Boot 4.0.
-- The release output stays a normal Maven JAR plus Docker image (no executable JAR).
-- Upstream kkFileView stays fetch-only and is **not** a publication remote.
+## Frozen Boot 3.5 reference
 
-Both development branches should run their own CI on push. Publishing Maven Central/CNB requires the separate EAP publication credentials and approvals; successful build alone is not evidence of publication.
+`boot3` (formerly `dev`) retains **2.9.2 / JDK 21 / Spring Boot 3.5.6** as an **unmaintained historical snapshot**. Do not create separate CI, product tasks, releases or regular maintenance there. The former `boot4` name has been replaced with `dev`.
+
+The upstream kkFileView Git remote stays fetch-only. Review and cherry-pick relevant format/security fixes **into `dev`**, without overwriting Boot 4.1 POM, down-stream integration boundaries or EAP release metadata.
+
+## Publication, identity and outputs
+
+Maven group `io.github.eaopen`, CNB and Central publishing accounts, GPG signing and authorization follow the organization's existing eap-boot setup, while the fileview `revision` is independently versioned.
+
+Outputs are a **regular Maven JAR plus Docker image** only. Base image `java21-sb41-r1` carries stable runtime dependencies; application changes go into the thin final image. Never claim a release exists until the repository/registry confirms publication.
