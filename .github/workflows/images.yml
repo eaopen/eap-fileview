@@ -42,7 +42,6 @@ jobs:
           platforms: linux/amd64,linux/arm64
           build-args: |
             APP_VERSION=${{ steps.version.outputs.value }}
-            BASE_IMAGE=ghcr.io/eaopen/eap-fileview-base:java21-sb41-r1
           tags: ghcr.io/eaopen/eap-fileview:${{ steps.version.outputs.value }}
           cache-from: type=gha,scope=fileview-app
           cache-to: type=gha,mode=max,scope=fileview-app
