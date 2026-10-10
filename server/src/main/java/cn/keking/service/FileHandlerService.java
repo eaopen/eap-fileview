@@ -18,6 +18,9 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.*;
 import java.net.URLDecoder;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -272,16 +275,24 @@ public class FileHandlerService {
             throw new IllegalArgumentException("文件名超过系统限制");
         }
         boolean isHtmlView = suffix.equalsIgnoreCase("xls") || suffix.equalsIgnoreCase("xlsx") || suffix.equalsIgnoreCase("csv") || suffix.equalsIgnoreCase("xlsm") || suffix.equalsIgnoreCase("xlt") || suffix.equalsIgnoreCase("xltm") || suffix.equalsIgnoreCase("et") || suffix.equalsIgnoreCase("ett") || suffix.equalsIgnoreCase("xlam");
+        // Remote download tickets often use identical filenames across libraries or
+        // versions. Keep the visible name but isolate local conversion files by the
+        // complete source URL (including any short-lived ticket). Never log the hash input.
+        // Archive children are already identified by their decompression key/path.
+        String storageName = originFileName;
+        if (!isCompressFile && (url.startsWith("https://") || url.startsWith("http://"))) {
+            storageName = previewSourceHash(url) + "_" + originFileName;
+        }
         String cacheFilePrefixName = null;
         try {
-            cacheFilePrefixName = originFileName.substring(0, originFileName.lastIndexOf(".")) + suffix + "."; //这里统一文件名处理 下面更具类型 各自添加后缀
+            cacheFilePrefixName = storageName.substring(0, storageName.lastIndexOf(".")) + suffix + "."; // same filename semantics
         } catch (Exception e) {
             logger.error("获取文件名后缀错误：", e);
             //  e.printStackTrace();
         }
-        String cacheFileName = this.getCacheFileName(type, originFileName, cacheFilePrefixName, isHtmlView, isCompressFile);
+        String cacheFileName = this.getCacheFileName(type, storageName, cacheFilePrefixName, isHtmlView, isCompressFile);
         outFilePath = fileDir + cacheFileName;
-        originFilePath = fileDir + originFileName;
+        originFilePath = fileDir + storageName;
         String cacheListName = cacheFilePrefixName + "ListName";  //文件列表缓存文件名
         attribute.setType(type);
         attribute.setName(originFileName);
@@ -332,6 +343,15 @@ public class FileHandlerService {
      *
      * @return 文件名
      */
+    private static String previewSourceHash(String url) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(url.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(digest, 0, 12);
+        } catch (NoSuchAlgorithmException ex) {
+            throw new IllegalStateException("SHA-256 required for isolated preview cache", ex);
+        }
+    }
+
     private String getCacheFileName(FileType type, String originFileName, String cacheFilePrefixName, boolean isHtmlView, boolean isCompressFile) {
         String cacheFileName;
         if (type.equals(FileType.OFFICE)) {
