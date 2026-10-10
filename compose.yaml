@@ -1,7 +1,7 @@
 # Pull-only runtime deployment; no development toolchain or heavy image build required.
 services:
   eap-fileview:
-    image: ${EAP_FILEVIEW_IMAGE:-ghcr.io/eaopen/eap-fileview:2.9.2}
+    image: ${EAP_FILEVIEW_IMAGE:-ghcr.io/eaopen/eap-fileview:3.0.2}
     ports:
       - "127.0.0.1:${EAP_FILEVIEW_PORT:-18012}:8012"
     environment:

@@ -5,5 +5,5 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        APP_VERSION: ${EAP_FILEVIEW_VERSION:-2.9.2}
-        BASE_IMAGE: ${EAP_FILEVIEW_BASE_IMAGE:-ghcr.io/eaopen/eap-fileview-base:java21-lo-r1}
+        APP_VERSION: ${EAP_FILEVIEW_VERSION:-3.0.2}
+        BASE_IMAGE: ${EAP_FILEVIEW_BASE_IMAGE:-ghcr.io/eaopen/eap-fileview-base:java21-sb41-r1}

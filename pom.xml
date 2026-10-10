@@ -11,7 +11,7 @@
     <properties>
         <!-- ========== Java 和编译配置 ========== -->
         <!-- 与 eap-boot 一致，支持 -Drevision 覆盖。 -->
-        <revision>2.9.2</revision>
+        <revision>3.0.2</revision>
         <java.version>21</java.version>
         <kkfileview.upstream.version>5.0.3</kkfileview.upstream.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
@@ -21,7 +21,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!-- ========== Spring 框架 ========== -->
-        <spring.boot.version>3.5.6</spring.boot.version>
+        <spring.boot.version>4.1.1</spring.boot.version>
 
         <!-- ========== 文档转换和Office处理 ========== -->
         <jodconverter.version>4.4.11</jodconverter.version>

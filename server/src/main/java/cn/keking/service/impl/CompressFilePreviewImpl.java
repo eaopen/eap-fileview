@@ -9,7 +9,7 @@ import cn.keking.service.FileHandlerService;
 import cn.keking.service.CompressFileReader;
 import cn.keking.utils.KkFileUtils;
 import cn.keking.utils.RarUtils;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.poi.EncryptedDocumentException;
 import org.slf4j.Logger;

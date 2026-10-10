@@ -1,9 +1,9 @@
 # syntax=docker/dockerfile:1
 # The final image only carries a regular Maven JAR. Runtime libraries live in
 # the versioned eap-fileview-base intermediate image and are reused downstream.
-ARG BASE_IMAGE=ghcr.io/eaopen/eap-fileview-base:java21-lo-r1
+ARG BASE_IMAGE=ghcr.io/eaopen/eap-fileview-base:java21-sb41-r1
 FROM ${BASE_IMAGE}
-ARG APP_VERSION=2.9.2
+ARG APP_VERSION=3.0.2
 WORKDIR /opt/eap-fileview
 COPY server/target/eap-fileview-${APP_VERSION}.jar ./app.jar
 COPY server/src/main/config/application.properties ./config/application.properties

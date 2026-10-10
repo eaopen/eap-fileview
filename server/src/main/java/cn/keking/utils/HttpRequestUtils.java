@@ -2,8 +2,7 @@ package cn.keking.utils;
 
 import cn.keking.config.ConfigConstants;
 import cn.keking.model.FileAttribute;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.TypeFactory;
+import tools.jackson.databind.ObjectMapper;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
@@ -244,8 +243,8 @@ public class HttpRequestUtils {
             HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
             factory.setHttpClient(httpClient);
 
-            // 设置连接超时和读取超时
-            factory.setConnectTimeout(30000);
+            // Spring Framework 7 removed factory.setConnectTimeout; the shared Apache
+            // connection manager already configures a 10s connect timeout above.
             factory.setReadTimeout(30000);
 
             RestTemplate restTemplate = new RestTemplate();
@@ -330,7 +329,7 @@ public class HttpRequestUtils {
             if (StringUtils.hasText(proxyAuthorization)) {
                 Map<String, String> proxyAuthorizationMap = mapper.readValue(
                         proxyAuthorization,
-                        TypeFactory.defaultInstance().constructMapType(Map.class, String.class, String.class)
+                        mapper.getTypeFactory().constructMapType(Map.class, String.class, String.class)
                 );
                 proxyAuthorizationMap.forEach((key, value) -> request.getHeaders().set(key, value));
             }

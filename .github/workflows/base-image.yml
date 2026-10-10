@@ -29,6 +29,6 @@ jobs:
           file: docker/Dockerfile.base
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: ghcr.io/eaopen/eap-fileview-base:java21-lo-r1
+          tags: ghcr.io/eaopen/eap-fileview-base:java21-sb41-r1
           cache-from: type=gha,scope=fileview-stable-base
           cache-to: type=gha,mode=max,scope=fileview-stable-base

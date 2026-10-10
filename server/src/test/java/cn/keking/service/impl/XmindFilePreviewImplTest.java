@@ -11,6 +11,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+/** Verify generic XMind previews correctly handle downloader results. */
 class XmindFilePreviewImplTest {
 
     @Test
