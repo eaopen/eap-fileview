@@ -58,7 +58,9 @@ public class PdfFilePreviewImpl implements FilePreview {
         boolean forceUpdatedCache = fileAttribute.forceUpdatedCache();  //是否启用强制更新命令
         String outFilePath = fileAttribute.getOutFilePath();  //生成的文件路径
         String originFilePath;  //原始文件路径
-        String cacheName = pdfName+officePreviewType;
+        // Use the source-scoped conversion identity, not a shared display name.
+        // Different libraries/versions may both contain e.g. plan.pdf.
+        String cacheName = fileAttribute.getCacheName() + officePreviewType;
         String filePassword = fileAttribute.getFilePassword();  // 获取密码
         if("demo.pdf".equals(pdfName)){
             return otherFilePreview.notSupportedFile(model, fileAttribute, "不能使用该文件名，请更换其他文件名在进行转换");
