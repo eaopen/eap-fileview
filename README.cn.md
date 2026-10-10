@@ -12,15 +12,53 @@
 - **扩展边界清晰**：领域数据模型、专有转换器、存储适配和消息集成由使用方自行实现，不进入通用预览引擎。
 - **上游独立演进**：kkFileView 上游保持只读；选择性合入格式或安全修复，避免覆盖本项目的 Spring Boot 4.1 依赖配置。
 
+## 系统架构
+
+以下架构图由 GPT 根据当前源码整理，GitHub 可直接渲染 Mermaid，后续可随实现同步编辑。
+
+```mermaid
+flowchart LR
+    client["浏览器 / 接入应用"]
+    source["受控文件源 HTTP(S)"]
+
+    subgraph core["eap-fileview · Java 21 / Spring Boot 4.1"]
+        entry["HTTP 预览入口<br/>OnlinePreviewController"]
+        guard["请求解码、来源信任校验<br/>文件属性识别"]
+        router{"FilePreviewFactory<br/>处理器选择"}
+        handlers["内置预览处理器<br/>Office / PDF / 图片 / XMind / CAD / 压缩包"]
+        extension["可选 FilePreviewProvider<br/>自定义处理器"]
+        download["文件下载与解析<br/>DownloadUtils"]
+        office["转换服务<br/>JODConverter / LibreOffice 等"]
+        fallback["可选 OfficePreviewFallbackConverter<br/>Word → PDF 失败回退"]
+        cache["本地临时文件和缓存<br/>JDK / RocksDB / Redis"]
+        viewer["FreeMarker 模板<br/>PDF.js / 前端查看器"]
+    end
+
+    client -->|"预览请求"| entry --> guard --> router
+    router -->|"默认"| handlers
+    router -.->|"自定义扩展优先"| extension
+    handlers -->|"按需下载"| download -->|"获取已授权文件"| source
+    handlers --> office
+    office -.->|"特定转换失败"| fallback
+    fallback -.-> cache
+    handlers --> cache
+    office --> cache
+    handlers --> viewer
+    extension --> viewer
+    cache --> viewer
+    viewer -->|"HTML / 预览资源"| client
+```
+
+文件的业务身份、授权、签名 URL 与访问有效期由**接入方**管理；图中的来源信任校验是预览服务自身的网络访问保护，不能代替业务授权。扩展处理器和转换回退均为**可选**，默认预览能力无需插件。
+
 ## 分支与版本
 
 | 分支 | 定位 | 版本 / 技术基线 |
 | --- | --- | --- |
 | **`dev`** | **默认分支，唯一日常开发线** | **3.0.2 / JDK 21 / Spring Boot 4.1.1** |
-| `main` | 已验证版本的发布入口，不日常开发 | 3.0.1 / JDK 21 / Spring Boot 4.0.8 |
 | `boot3` | 历史 Boot 3.5 兼容快照，**不再单独维护** | 2.9.2 / JDK 21 / Spring Boot 3.5.6 |
 
-新功能和修复基于 `dev` 开短期分支、经测试合入；待 Docker 与真实文件预览验收后，才将合格版本晋升到 `main` 并打标签。见 [分支规则](doc/BRANCHING.md)。
+新功能与修复从 `dev` 建立短期分支、经测试合入；完成 Docker 启动、平台测试和真实预览验收后，直接在审核通过的 `dev` 提交上创建正式版本标签。见 [分支规则](doc/BRANCHING.md)。
 
 ## 本地构建和测试
 
@@ -42,6 +80,22 @@ mvn -B -pl server -am \
 ```
 
 ## Docker 独立部署
+
+### Maven 与镜像分层
+
+```mermaid
+flowchart LR
+    src["Java 21 / Maven 源码"] --> jar["普通 JAR<br/>eap-fileview-3.0.2.jar"]
+    src --> deps["Maven 运行依赖<br/>target/dependency/"]
+    deps --> base["稳定基础镜像<br/>JRE 21 + LibreOffice + 字体 + 依赖"]
+    jar --> app["最终应用镜像<br/>普通 JAR + 配置"]
+    base --> app
+    jar -.->|"可选嵌入"| consumer["独立 Spring Boot 应用"]
+    app --> compose["Docker Compose 部署"]
+```
+
+基础镜像随 Java、LibreOffice、字体或依赖更新；日常仅改本项目应用代码时，可复用它而不必重新构建运行环境。
+
 
 正常部署使用已发布的镜像，不必在目标机器编译 Java：
 
