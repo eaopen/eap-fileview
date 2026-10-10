@@ -14,42 +14,11 @@
 
 ## 系统架构
 
-以下架构图由 GPT 根据当前源码整理，GitHub 可直接渲染 Mermaid，后续可随实现同步编辑。
+方案图展示 eap-fileview 的定位、接入方式、内部处理、可选扩展以及 Maven/Docker 部署分层。由 GPT 根据当前代码整理，仓库使用可缩放的 SVG 形式维护。
 
-```mermaid
-flowchart LR
-    client["浏览器 / 接入应用"]
-    source["受控文件源 HTTP(S)"]
+![eap-fileview 解决方案与系统架构](doc/img/eap-fileview-solution-architecture.svg)
 
-    subgraph core["eap-fileview · Java 21 / Spring Boot 4.1"]
-        entry["HTTP 预览入口<br/>OnlinePreviewController"]
-        guard["请求解码、来源信任校验<br/>文件属性识别"]
-        router{"FilePreviewFactory<br/>处理器选择"}
-        handlers["内置预览处理器<br/>Office / PDF / 图片 / XMind / CAD / 压缩包"]
-        extension["可选 FilePreviewProvider<br/>自定义处理器"]
-        download["文件下载与解析<br/>DownloadUtils"]
-        office["转换服务<br/>JODConverter / LibreOffice 等"]
-        fallback["可选 OfficePreviewFallbackConverter<br/>Word → PDF 失败回退"]
-        cache["本地临时文件和缓存<br/>JDK / RocksDB / Redis"]
-        viewer["FreeMarker 模板<br/>PDF.js / 前端查看器"]
-    end
-
-    client -->|"预览请求"| entry --> guard --> router
-    router -->|"默认"| handlers
-    router -.->|"自定义扩展优先"| extension
-    handlers -->|"按需下载"| download -->|"获取已授权文件"| source
-    handlers --> office
-    office -.->|"特定转换失败"| fallback
-    fallback -.-> cache
-    handlers --> cache
-    office --> cache
-    handlers --> viewer
-    extension --> viewer
-    cache --> viewer
-    viewer -->|"HTML / 预览资源"| client
-```
-
-文件的业务身份、授权、签名 URL 与访问有效期由**接入方**管理；图中的来源信任校验是预览服务自身的网络访问保护，不能代替业务授权。扩展处理器和转换回退均为**可选**，默认预览能力无需插件。
+其中 FilePreviewProvider、OfficePreviewFallbackConverter 都是可选扩展；用户鉴权及签名 URL 的有效期仍由调用方负责。
 
 ## 分支与版本
 
@@ -130,6 +99,7 @@ docker compose -f compose.yaml -f compose.build.yaml up -d
 
 ## 文档导航
 
+- [解决方案与系统架构详解](doc/ARCHITECTURE.md)
 - [扩展接口、Maven/JAR、Docker 镜像与发布](doc/EXTENSION_RELEASE.md)
 - [通用 HTTP 文件预览集成规范](doc/HTTP_PREVIEW_INTEGRATION.md)
 - [通用预览能力核查与改进记录](doc/PREVIEW_CAPABILITY_REVIEW.md)

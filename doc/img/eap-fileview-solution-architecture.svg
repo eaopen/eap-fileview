@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1580" height="1050" viewBox="0 0 1580 1050" role="img" aria-labelledby="title desc">
+<title id="title">eap-fileview 解决方案与系统架构</title><desc id="desc">通用文件预览引擎的定位、接入方式、内部处理流程、扩展点及 Maven Docker 分层部署架构</desc>
+<defs><linearGradient id="head" x2="1" y2="0"><stop stop-color="#1c68b8"/><stop offset="1" stop-color="#369be6"/></linearGradient><linearGradient id="bg" x2="0" y2="1"><stop stop-color="#f7fbff"/><stop offset="1" stop-color="#fff"/></linearGradient><marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#338dcf"/></marker></defs>
+<rect width="1580" height="1050" fill="url(#bg)"/>
+<style>text{font-family:"Noto Sans CJK SC","PingFang SC","Microsoft Yahei",Arial,sans-serif;fill:#163b62;font-size:17px}.sub{font-size:14px;fill:#5c7692}.label{font-size:19px;font-weight:700}.heading{font-size:26px;font-weight:750;fill:white}.section-title{font-size:23px;font-weight:700;fill:#236aa7}.key{font-size:16px;font-weight:650}.mini{font-size:13px;fill:#526d87}</style>
+<text x="790" y="53" font-size="39" font-weight="bold" text-anchor="middle">eap-fileview 解决方案与系统架构</text>
+<text x="790" y="85" font-size="19" fill="#597791" text-anchor="middle">独立通用文件预览引擎  ·  Docker 服务部署  ·  普通 Maven JAR 嵌入集成</text>
+<rect x="25" y="114" width="343" height="329" rx="12" fill="#fff" stroke="#c0d9ef" stroke-width="1.8"/>
+<rect x="25" y="114" width="319" height="46" rx="9" fill="url(#head)"/>
+<text x="44" y="146" class="heading">1. 解决方案定位</text>
+<rect x="41" y="172" width="312" height="59" rx="9" fill="#eff7ff" stroke="#bddcf3" stroke-width="1.6"/>
+<text x="197.0" y="199" text-anchor="middle" class="key">定位</text>
+<text x="197.0" y="222" text-anchor="middle" class="mini">基于 kkFileView v5.0.3 的通用预览引擎</text>
+<rect x="41" y="241" width="312" height="59" rx="9" fill="#eefbf7" stroke="#b8e2d4" stroke-width="1.6"/>
+<text x="197.0" y="268" text-anchor="middle" class="key">集成方式</text>
+<text x="197.0" y="291" text-anchor="middle" class="mini">HTTP 文件预览服务 + 普通 Maven JAR</text>
+<rect x="41" y="310" width="312" height="59" rx="9" fill="#fff8ef" stroke="#f4dbb5" stroke-width="1.6"/>
+<text x="197.0" y="337" text-anchor="middle" class="key">职责边界</text>
+<text x="197.0" y="360" text-anchor="middle" class="mini">预览与转换；业务鉴权及存储由调用方负责</text>
+<rect x="41" y="379" width="312" height="51" rx="9" fill="#eff7ff" stroke="#bddcf3" stroke-width="1.6"/>
+<text x="197.0" y="406" text-anchor="middle" class="key">支持格式</text>
+<text x="197.0" y="429" text-anchor="middle" class="mini">Office / PDF / 图片 / XMind / CAD / 3D</text>
+<rect x="381" y="114" width="1173" height="329" rx="12" fill="#fff" stroke="#c0d9ef" stroke-width="1.8"/>
+<rect x="381" y="114" width="470" height="46" rx="9" fill="url(#head)"/>
+<text x="400" y="146" class="heading">2. 解决方案架构</text>
+<rect x="404" y="180" width="306" height="152" rx="9" fill="#eff7ff" stroke="#bddcf3" stroke-width="1.6"/>
+<text x="557.0" y="207" text-anchor="middle" class="key">接入层</text>
+<text x="557.0" y="230" text-anchor="middle" class="mini">浏览器 / Web 前端</text>
+<text x="557.0" y="249" text-anchor="middle" class="mini">调用方应用</text>
+<text x="557.0" y="268" text-anchor="middle" class="mini">可选反向代理 / API 网关</text>
+<rect x="747" y="180" width="414" height="152" rx="9" fill="#e5f3ff" stroke="#74b4e7" stroke-width="1.6"/>
+<text x="954.0" y="207" text-anchor="middle" class="key">文件预览服务 · eap-fileview</text>
+<text x="954.0" y="230" text-anchor="middle" class="mini">/onlinePreview  ·  在线预览</text>
+<text x="954.0" y="249" text-anchor="middle" class="mini">/picturesPreview  ·  多图预览</text>
+<text x="954.0" y="268" text-anchor="middle" class="mini">/getCorsFile  ·  可选跨域读取</text>
+<rect x="1202" y="180" width="324" height="152" rx="9" fill="#eaf9f3" stroke="#9ad9ba" stroke-width="1.6"/>
+<text x="1364.0" y="207" text-anchor="middle" class="key">文件来源层</text>
+<text x="1364.0" y="230" text-anchor="middle" class="mini">已授权的 HTTP(S) 文件 URL</text>
+<text x="1364.0" y="249" text-anchor="middle" class="mini">对象存储 / 文件服务 / 文档系统</text>
+<text x="1364.0" y="268" text-anchor="middle" class="mini">短期链接 / 访问票据</text>
+<path d="M711,251 L744,251" stroke="#338dcf" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+<path d="M1164,251 L1199,251" stroke="#338dcf" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+<rect x="405" y="357" width="547" height="64" rx="8" fill="#fff4e9" stroke="#f3cfa1" stroke-width="1.6"/>
+<text x="677" y="382" text-anchor="middle" class="key">调用方负责</text>
+<text x="677" y="408" font-size="14" text-anchor="middle">身份认证、业务授权、文件权限、签名 URL 及有效期</text>
+<rect x="975" y="357" width="550" height="64" rx="8" fill="#eaf5ff" stroke="#badcf6" stroke-width="1.6"/>
+<text x="1250" y="382" text-anchor="middle" class="key">eap-fileview 负责</text>
+<text x="1250" y="408" font-size="14" text-anchor="middle">文件获取、格式转换、缓存、模板渲染与只读预览</text>
+<rect x="25" y="456" width="1529" height="352" rx="12" fill="#fff" stroke="#c0d9ef" stroke-width="1.8"/>
+<rect x="25" y="456" width="470" height="46" rx="9" fill="url(#head)"/>
+<text x="44" y="488" class="heading">3. 系统内部架构</text>
+<rect x="45" y="531" width="183" height="94" rx="9" fill="#eff7ff" stroke="#bddcf3" stroke-width="1.6"/>
+<text x="136.5" y="558" text-anchor="middle" class="key">请求入口</text>
+<text x="136.5" y="581" text-anchor="middle" class="mini">/onlinePreview</text>
+<rect x="245" y="531" width="183" height="94" rx="9" fill="#eff7ff" stroke="#bddcf3" stroke-width="1.6"/>
+<text x="336.5" y="558" text-anchor="middle" class="key">参数解析</text>
+<text x="336.5" y="581" text-anchor="middle" class="mini">Base64 URL</text>
+<text x="336.5" y="600" text-anchor="middle" class="mini">文件属性识别</text>
+<rect x="445" y="531" width="196" height="94" rx="9" fill="#eff7ff" stroke="#bddcf3" stroke-width="1.6"/>
+<text x="543.0" y="558" text-anchor="middle" class="key">源地址安全校验</text>
+<text x="543.0" y="581" text-anchor="middle" class="mini">来源信任与网络访问</text>
+<rect x="668" y="531" width="211" height="94" rx="9" fill="#e8f4ff" stroke="#6eb0e8" stroke-width="1.6"/>
+<text x="773.5" y="558" text-anchor="middle" class="key">FilePreviewFactory</text>
+<text x="773.5" y="581" text-anchor="middle" class="mini">内置或可选扩展处理器</text>
+<rect x="904" y="518" width="248" height="93" rx="9" fill="#eff7ff" stroke="#bddcf3" stroke-width="1.6"/>
+<text x="1028.0" y="545" text-anchor="middle" class="key">内置预览处理器</text>
+<text x="1028.0" y="568" text-anchor="middle" class="mini">Office / PDF / 图片</text>
+<text x="1028.0" y="587" text-anchor="middle" class="mini">XMind / CAD / 3D / 压缩包</text>
+<rect x="904" y="633" width="248" height="74" rx="9" fill="#f4efff" stroke="#ccb0fa" stroke-width="1.6"/>
+<text x="1028.0" y="660" text-anchor="middle" class="key">FilePreviewProvider</text>
+<text x="1028.0" y="683" text-anchor="middle" class="mini">自定义处理器（可选）</text>
+<rect x="1173" y="518" width="173" height="94" rx="9" fill="#eff7ff" stroke="#bddcf3" stroke-width="1.6"/>
+<text x="1259.5" y="545" text-anchor="middle" class="key">文件下载与转换</text>
+<text x="1259.5" y="568" text-anchor="middle" class="mini">DownloadUtils</text>
+<text x="1259.5" y="587" text-anchor="middle" class="mini">LibreOffice / JODConverter</text>
+<rect x="1173" y="633" width="173" height="74" rx="9" fill="#f4efff" stroke="#ccb0fa" stroke-width="1.6"/>
+<text x="1259.5" y="660" text-anchor="middle" class="key">Office 转换回退</text>
+<text x="1259.5" y="683" text-anchor="middle" class="mini">Word → PDF（可选）</text>
+<rect x="1365" y="518" width="168" height="94" rx="9" fill="#eefbf7" stroke="#a5dac5" stroke-width="1.6"/>
+<text x="1449.0" y="545" text-anchor="middle" class="key">缓存与临时文件</text>
+<text x="1449.0" y="568" text-anchor="middle" class="mini">JDK / RocksDB</text>
+<text x="1449.0" y="587" text-anchor="middle" class="mini">Redis（可选）</text>
+<path d="M230,576 L242,576" stroke="#338dcf" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+<path d="M430,576 L442,576" stroke="#338dcf" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+<path d="M643,576 L665,576" stroke="#338dcf" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+<path d="M881,576 L901,567" stroke="#338dcf" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+<path d="M881,599 L901,669" stroke="#338dcf" stroke-width="2.5" fill="none" stroke-dasharray="7 5" marker-end="url(#arrow)"/>
+<path d="M1154,565 L1170,565" stroke="#338dcf" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+<path d="M1348,566 L1362,566" stroke="#338dcf" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+<path d="M1259,614 L1259,630" stroke="#338dcf" stroke-width="2.5" fill="none" stroke-dasharray="7 5" marker-end="url(#arrow)"/>
+<rect x="259" y="725" width="1083" height="53" rx="8" fill="#eaf9f4" stroke="#a3dbc6" stroke-width="1.6"/>
+<text x="800" y="749" font-size="18" font-weight="bold" text-anchor="middle">FreeMarker 模板 / PDF.js / 前端查看器</text>
+<text x="800" y="767" text-anchor="middle" class="mini">返回 HTML 预览页及图片、PDF 等静态资源</text>
+<path d="M1449,614 L1449,750" stroke="#338dcf" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+<path d="M1449,750 L1344,750" stroke="#338dcf" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+<text x="64" y="797" class="mini">说明：业务权限由调用方负责；扩展处理器和 Office 回退均为可选能力。</text>
+<rect x="25" y="822" width="1529" height="171" rx="12" fill="#fff" stroke="#c0d9ef" stroke-width="1.8"/>
+<rect x="25" y="822" width="470" height="46" rx="9" fill="url(#head)"/>
+<text x="44" y="854" class="heading">4. Maven 与 Docker 构建部署</text>
+<rect x="44" y="881" width="215" height="72" rx="9" fill="#eff7ff" stroke="#bddcf3" stroke-width="1.6"/>
+<text x="151.5" y="908" text-anchor="middle" class="key">JDK 21 + Maven</text>
+<text x="151.5" y="931" text-anchor="middle" class="mini">dev 源码</text>
+<rect x="306" y="870" width="236" height="64" rx="9" fill="#eff7ff" stroke="#bddcf3" stroke-width="1.6"/>
+<text x="424.0" y="897" text-anchor="middle" class="key">普通 Maven JAR</text>
+<text x="424.0" y="920" text-anchor="middle" class="mini">eap-fileview-3.0.2.jar</text>
+<rect x="306" y="939" width="236" height="46" rx="9" fill="#eff7ff" stroke="#bddcf3" stroke-width="1.6"/>
+<text x="424.0" y="966" text-anchor="middle" class="key">运行依赖</text>
+<text x="424.0" y="989" text-anchor="middle" class="mini">target/dependency/</text>
+<rect x="582" y="881" width="281" height="72" rx="9" fill="#eaf8f2" stroke="#93d7b7" stroke-width="1.6"/>
+<text x="722.5" y="908" text-anchor="middle" class="key">稳定基础镜像</text>
+<text x="722.5" y="931" text-anchor="middle" class="mini">JRE 21 / LibreOffice / 字体 / 依赖</text>
+<rect x="906" y="881" width="270" height="72" rx="9" fill="#eff6ff" stroke="#a9d4f4" stroke-width="1.6"/>
+<text x="1041.0" y="908" text-anchor="middle" class="key">最终应用镜像</text>
+<text x="1041.0" y="931" text-anchor="middle" class="mini">普通 JAR + 配置</text>
+<rect x="1217" y="870" width="313" height="52" rx="9" fill="#eff7ff" stroke="#bddcf3" stroke-width="1.6"/>
+<text x="1373.5" y="897" text-anchor="middle" class="key">Docker Compose 部署</text>
+<text x="1373.5" y="920" text-anchor="middle" class="mini">容器运行</text>
+<rect x="1217" y="935" width="313" height="52" rx="9" fill="#f5f0ff" stroke="#cbb8f0" stroke-width="1.6"/>
+<text x="1373.5" y="962" text-anchor="middle" class="key">Maven 嵌入式集成</text>
+<text x="1373.5" y="985" text-anchor="middle" class="mini">导入预览组件（可选）</text>
+<path d="M262,905 L303,900" stroke="#338dcf" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+<path d="M262,920 L303,959" stroke="#338dcf" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+<path d="M545,958 L579,932" stroke="#338dcf" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+<path d="M866,918 L902,918" stroke="#338dcf" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+<path d="M1179,904 L1214,894" stroke="#338dcf" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+<path d="M545,901 L579,901" stroke="#338dcf" stroke-width="2.5" fill="none" stroke-dasharray="7 5" marker-end="url(#arrow)"/>
+<path d="M545,901 L545,860 L1210,860 L1210,950" stroke="#338dcf" stroke-dasharray="7 5" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+<text x="35" y="1030" font-size="14" fill="#55748d">当前开发分支：dev（v3.0.2 / JDK 21 / Spring Boot 4.1.1）     历史兼容分支：boot3（v2.9.2 / Spring Boot 3.5.6）</text>
+</svg>
