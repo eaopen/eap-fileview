@@ -50,6 +50,10 @@ public class OnlinePreviewController {
     private static final String URL_PARAM_FTP_CONTROL_ENCODING = "ftp.control.encoding";
     private static final String URL_PARAM_FTP_PORT = "ftp.control.port";
 
+    // SECURITY: URLs may contain short-lived CloudFile download credentials. Never
+    // log decoded, encoded, or redirected source URLs, nor exceptions that may
+    // stringify request URIs. Source host/type and static error classes suffice.
+
     private final FilePreviewFactory previewFactory;
     private final CacheService cacheService;
     private final FileHandlerService fileHandlerService;
@@ -90,7 +94,7 @@ public class OnlinePreviewController {
         model.addAttribute("kkagent", Boolean.toString(Boolean.parseBoolean(kkagent)));
         model.addAttribute("file", fileAttribute);
         FilePreview filePreview = previewFactory.get(fileAttribute);
-        logger.info("预览文件url：{}，previewType：{}", fileUrl, fileAttribute.getType());
+        logger.info("预览文件类型：{}", fileAttribute.getType());
         fileUrl =WebUtils.urlEncoderencode(fileUrl);
         if (ObjectUtils.isEmpty(fileUrl)) {
             return otherFilePreview.notSupportedFile(model, "非法路径,不允许访问");
@@ -132,7 +136,7 @@ public class OnlinePreviewController {
             String errorMsg = String.format(BASE64_DECODE_ERROR_MSG, "urls");
             return otherFilePreview.notSupportedFile(model, errorMsg);
         }
-        logger.info("预览文件url：{}，urls：{}", fileUrls, urls);
+        logger.debug("图片预览请求已验证");
         // 抽取文件并返回文件列表
         String[] images = fileUrls.split("\\|");
         List<String> imgUrls = Arrays.asList(images);
@@ -164,7 +168,7 @@ public class OnlinePreviewController {
 
         // 1. 验证接口是否开启
         if (!ConfigConstants.getGetCorsFile()) {
-            logger.info("接口关闭，禁止访问!，url：{}", urlPath);
+            logger.warn("跨域预览取流接口已关闭");
             try {
                 response.sendError(HttpServletResponse.SC_FORBIDDEN, "接口已关闭");
             } catch (IOException ignored) {}
@@ -172,7 +176,7 @@ public class OnlinePreviewController {
         }
         // 2. 验证访问权限
         if (WebUtils.validateKey(key)) {
-            logger.info("访问不合法：访问密码不正确!，url：{}", urlPath);
+            logger.warn("跨域预览取流认证失败");
             try {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "访问密码不正确");
             } catch (IOException ignored) {}
@@ -184,7 +188,7 @@ public class OnlinePreviewController {
             urlPath = WebUtils.decodeUrl(urlPath, encryption);
             url = WebUtils.normalizedURL(urlPath);
         } catch (Exception ex) {
-            logger.error(String.format(BASE64_DECODE_ERROR_MSG, urlPath), ex);
+            logger.warn("跨域预览 URL 解析失败");
             try {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "URL 解析失败");
             } catch (IOException ignored) {}
@@ -193,7 +197,7 @@ public class OnlinePreviewController {
 
         assert urlPath != null;
         if (!isHttpUrl(url) && !isFtpUrl(url)) {
-            logger.info("读取跨域文件异常，可能存在非法访问，urlPath：{}", urlPath);
+            logger.warn("跨域预览来源协议不受支持");
             try {
                 response.sendError(HttpServletResponse.SC_FORBIDDEN, "不支持的协议");
             } catch (IOException ignored) {}
@@ -201,7 +205,7 @@ public class OnlinePreviewController {
         }
 
         FileAttribute fileAttribute = fileHandlerService.getFileAttribute(urlPath, req);
-        logger.debug("读取跨域预览文件来源：{}", WebUtils.getHost(urlPath));
+        logger.debug("跨域预览文件来源主机：{}", WebUtils.getHost(urlPath));
 
         if (!isFtpUrl(url)) {
             // HTTP/HTTPS 处理（修复：不关闭共享的 CloseableHttpClient）
@@ -234,7 +238,7 @@ public class OnlinePreviewController {
                 }
             } catch (Exception e) {
                 // 捕获其他异常（如连接超时、IO 异常等）
-                logger.error("读取跨域文件异常，来源：{}", WebUtils.getHost(urlPath), e);
+                logger.error("跨域预览来源请求异常，异常类型：{}", e.getClass().getSimpleName());
                 try {
                     response.sendError(HttpServletResponse.SC_BAD_GATEWAY, "文件源暂时不可用，请重新打开预览");
                 } catch (IOException ignored) {
@@ -256,7 +260,7 @@ public class OnlinePreviewController {
                 inputStream = FtpUtils.preview(urlPath, support, urlPath, ftpUsername, ftpPassword, ftpControlEncoding);
                 IOUtils.copy(inputStream, response.getOutputStream());
             } catch (IOException e) {
-                logger.error("读取跨域文件异常，url：{}", urlPath, e);
+                logger.error("FTP 预览读取失败，异常类型：{}", e.getClass().getSimpleName());
                 try {
                     // 根据异常信息判断是否为文件不存在
                     if (e.getMessage() != null && (e.getMessage().contains("550") || e.getMessage().contains("File not found"))) {
@@ -266,7 +270,7 @@ public class OnlinePreviewController {
                     }
                 } catch (IOException ignored) {}
             } catch (Exception e) {
-                logger.error("FTP 预览发生未知异常，url：{}", urlPath, e);
+                logger.error("FTP 预览异常，异常类型：{}", e.getClass().getSimpleName());
                 try {
                     response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "FTP 服务异常");
                 } catch (IOException ignored) {}
@@ -289,7 +293,7 @@ public class OnlinePreviewController {
         // 1. 验证接口是否开启
         if (!ConfigConstants.getAddTask()) {
             String errorMsg = "接口关闭，禁止访问!";
-            logger.info("{}，url：{}", errorMsg, url);
+            logger.info("预览入队接口已关闭");
             return errorMsg;
         }
         String fileUrls;
@@ -297,17 +301,17 @@ public class OnlinePreviewController {
             fileUrls = WebUtils.decodeUrl(url, encryption);
         } catch (Exception ex) {
             String errorMsg = "Url解析错误";
-            logger.info("{}，url：{}", errorMsg, url);
+            logger.warn("预览入队 URL 解析失败");
             return errorMsg;
         }
 
         //2. 验证访问权限
         if (WebUtils.validateKey(key)) {
             String errorMsg = "访问不合法：访问密码不正确!";
-            logger.info("{}，url：{}", errorMsg, fileUrls);
+            logger.warn("预览入队认证失败");
             return errorMsg;
         }
-        logger.info("添加转码队列url：{}", fileUrls);
+        logger.info("添加预览转换任务");
         cacheService.addQueueTask(fileUrls);
         return "success";
     }
