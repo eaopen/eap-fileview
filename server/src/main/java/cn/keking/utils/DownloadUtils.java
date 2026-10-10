@@ -87,8 +87,8 @@ public class DownloadUtils {
                         String contentType = responseWrapper.getContentType();
                         if (WebUtils.isMimeCheckRequired(fileSuffix)) {
                             if (!WebUtils.isValidMimeType(contentType, fileSuffix)) {
-                                logger.error("文件类型错误，期望二进制文件但接收到文本类型，url: {}, Content-Type: {}",
-                                        finalUrlStr, contentType);
+                                logger.warn("预览文件源返回非文件内容，来源: {}, Content-Type: {}",
+                                        WebUtils.getHost(finalUrlStr), contentType);
                                 hasMimeError[0] = true;
                                 mimeErrorMessage[0] = "期望二进制文件但接收到文本类型，Content-Type: " + contentType;
                                 return;
@@ -123,7 +123,7 @@ public class DownloadUtils {
             return response;
 
         } catch (HttpClientErrorException e) {
-            logger.error("HTTP请求失败，状态码：{}，url：{}", e.getStatusCode(), urlStr);
+            logger.warn("文件源请求失败，状态码：{}，来源：{}", e.getStatusCode(), WebUtils.getHost(urlStr));
             response.setCode(1);
             response.setContent(null);
             if (e.getStatusCode().is4xxClientError()) {
@@ -133,7 +133,7 @@ public class DownloadUtils {
             }
             return response;
         } catch (IOException | GalimatiasParseException e) {
-            logger.error("文件下载失败，url：{}", urlStr);
+            logger.warn("文件下载失败，来源：{}", WebUtils.getHost(urlStr));
             response.setCode(1);
             response.setContent(null);
             if (e instanceof FileNotFoundException) {
@@ -143,7 +143,7 @@ public class DownloadUtils {
             }
             return response;
         } catch (Exception e) {
-            logger.error("下载文件时发生未知异常，url：{}", urlStr, e);
+            logger.error("下载文件时发生异常，来源：{}", WebUtils.getHost(urlStr), e);
             response.setCode(1);
             response.setContent(null);
             response.setMsg("下载失败: " + e.getMessage());

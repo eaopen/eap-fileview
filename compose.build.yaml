@@ -1,0 +1,9 @@
+# Optional local build; base must first be built or published for the selected version.
+services:
+  eap-fileview:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        APP_VERSION: ${EAP_FILEVIEW_VERSION:-2.9.2}
+        BASE_IMAGE: ${EAP_FILEVIEW_BASE_IMAGE:-ghcr.io/eaopen/eap-fileview-base:java21-lo-r1}

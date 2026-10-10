@@ -1,0 +1,31 @@
+name: Publish ordinary Maven JAR to CNB
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: maven-cnb
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          server-id: openeap-mvn-cnb
+          server-username: CNB_USERNAME
+          server-password: CNB_TOKEN
+      - name: Validate authorized CNB account
+        env:
+          CNB_USERNAME: ${{ secrets.CNB_USERNAME }}
+          CNB_TOKEN: ${{ secrets.CNB_TOKEN }}
+        run: |
+          test -n "$CNB_USERNAME"
+          test -n "$CNB_TOKEN"
+      - name: Deploy regular dependency JAR and parent POM
+        env:
+          CNB_USERNAME: ${{ secrets.CNB_USERNAME }}
+          CNB_TOKEN: ${{ secrets.CNB_TOKEN }}
+        run: mvn -B -Pcnb -DskipTests deploy

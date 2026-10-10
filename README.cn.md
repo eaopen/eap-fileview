@@ -1,4 +1,12 @@
-# kkFileView
+# eap-fileview — 通用文件预览引擎
+
+基于 [kkFileView v5.0.3](https://github.com/kekingcn/kkFileView) 独立维护，
+既可通过 Docker 部署，也可作为普通 Maven JAR 提供通用二次开发接口。
+
+- [扩展机制、Maven JAR、Docker 与发布说明](doc/EXTENSION_RELEASE.md)
+
+---
+\n# kkFileView
 文档在线预览项目解决方案，项目使用流行的spring boot搭建，易上手和部署。万能的文件预览开源项目，基本支持主流文档格式预览，如：
 1. 支持 doc, docx, xls, xlsx, xlsm, ppt, pptx, csv, tsv, dotm, xlt, xltm, dot, dotx,xlam, xla ,pages ,pptm 等 Office 办公文档
 2. 支持 wps, dps, et, ett, wpt 等国产 WPS Office 办公文档

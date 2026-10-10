@@ -201,16 +201,29 @@ public class OnlinePreviewController {
         }
 
         FileAttribute fileAttribute = fileHandlerService.getFileAttribute(urlPath, req);
-        logger.info("读取跨域文件url：{}", urlPath);
+        logger.debug("读取跨域预览文件来源：{}", WebUtils.getHost(urlPath));
 
         if (!isFtpUrl(url)) {
             // HTTP/HTTPS 处理（修复：不关闭共享的 CloseableHttpClient）
             CloseableHttpClient httpClient = HttpRequestUtils.createConfiguredHttpClient();
             try {
-                HttpRequestUtils.executeHttpRequest(url, httpClient, fileAttribute, responseWrapper -> IOUtils.copy(responseWrapper.getInputStream(), response.getOutputStream()));
+                HttpRequestUtils.executeHttpRequest(url, httpClient, fileAttribute, responseWrapper -> {
+                    String contentType = responseWrapper.getContentType();
+                    // 修改逻辑：通用二进制预览源如返回登录页/临时票据错误 JSON，则拒绝透传伪文件。
+                    // 修改原因：否则 PDF.js/XMind/Office 会显示无法解析的空白或长时间等待。
+                    if (WebUtils.isMimeCheckRequired(fileAttribute.getSuffix())
+                            && !WebUtils.isValidMimeType(contentType, fileAttribute.getSuffix())) {
+                        response.sendError(HttpServletResponse.SC_BAD_GATEWAY, "文件源返回了非文件内容，请重新打开预览");
+                        return;
+                    }
+                    if (contentType != null && !contentType.isBlank()) {
+                        response.setContentType(contentType);
+                    }
+                    IOUtils.copy(responseWrapper.getInputStream(), response.getOutputStream());
+                });
             } catch (HttpClientErrorException e) {
                 // 捕获 HTTP 4xx 错误（如 404）
-                logger.error("HTTP 请求失败，状态码：{}，url：{}", e.getStatusCode(), urlPath);
+                logger.warn("预览文件源请求失败，状态码：{}，来源：{}", e.getStatusCode(), WebUtils.getHost(urlPath));
                 try {
                     if (e.getStatusCode().is4xxClientError()) {
                         response.sendError(e.getStatusCode().value(), "文件不存在或无法访问");
@@ -221,9 +234,9 @@ public class OnlinePreviewController {
                 }
             } catch (Exception e) {
                 // 捕获其他异常（如连接超时、IO 异常等）
-                logger.error("读取跨域文件异常，url：{}", urlPath, e);
+                logger.error("读取跨域文件异常，来源：{}", WebUtils.getHost(urlPath), e);
                 try {
-                    response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "读取文件失败: " + e.getMessage());
+                    response.sendError(HttpServletResponse.SC_BAD_GATEWAY, "文件源暂时不可用，请重新打开预览");
                 } catch (IOException ignored) {
                 }
             }

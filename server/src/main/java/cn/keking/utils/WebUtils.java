@@ -77,10 +77,12 @@ public class WebUtils {
      * @return
      */
     public static String clearFullfilenameParam(String urlStr) {
-        // 去除特定参数字段
-        Pattern pattern = Pattern.compile("(&fullfilename=[^&]*)");
-        Matcher matcher = pattern.matcher(urlStr);
-        return matcher.replaceAll("");
+        // 修改逻辑：允许 fullfilename 出现在首个或后续 query 参数位置，并保留其他参数。
+        // 修改原因：预览调用方可以是 CloudFile、对象存储或普通 URL，不能要求业务方固定参数顺序。
+        // 仅删参数本身与它的后置 &；保留前一个参数的分隔符。
+        // 去掉 query 末尾剩余的 ?/&，避免一次性下载票据 URL 被截成无效地址。
+        Pattern pattern = Pattern.compile("(?<=[?&])fullfilename=[^&#]*&?");
+        return pattern.matcher(urlStr).replaceAll("").replaceAll("[?&](?=#|$)", "");
     }
 
     /**
@@ -534,7 +536,11 @@ public class WebUtils {
         return Arrays.asList(
                 "doc", "docx", "ppt", "pptx", "pdf", "dwg",
                 "dxf", "dwf", "psd", "wps", "xlsx", "xls",
-                "rar", "zip"
+                // 扩展二进制预览：临时文件源常返回 HTTP 200 + JSON/HTML 错误页。
+                // 文本/代码/CSV/HTML 不在此处拦截，避免误判合法内容。
+                "rar", "zip", "7z", "xmind", "odt", "ods", "odp", "vsd", "vsdx",
+                // ASCII CAD / JSON glTF are intentionally excluded: text is a valid source there.
+                "glb", "tif", "tiff", "ofd", "epub", "pptm", "docm", "xlsm"
         ).contains(lowerSuffix);
     }
 
@@ -551,6 +557,8 @@ public class WebUtils {
 
         // 如果检测到是HTML、文本或JSON格式，则认为是错误响应
         String lowerContentType = contentType.toLowerCase();
+        // CAD DXF can legitimately be ASCII text; keep blocking HTML/JSON ticket errors.
+        if ("dxf".equalsIgnoreCase(suffix) && lowerContentType.contains("text/plain")) return true;
         return !lowerContentType.contains("text/html")
                 && !lowerContentType.contains("text/plain")
                 && !lowerContentType.contains("application/json");

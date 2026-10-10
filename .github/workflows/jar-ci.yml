@@ -1,0 +1,28 @@
+name: Build plain Maven JAR
+on:
+  push:
+    branches: ['dev']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  jar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Test portable suite
+        run: mvn -B -pl server -am '-Dtest=*,!EncodingTests,!ServerMainTests,!ArchiveTraversalSecurityTests' -Dsurefire.failIfNoSpecifiedTests=false test
+      - name: Build regular library jar
+        run: mvn -B -pl server -am -DskipTests package
+      - name: Upload only plain JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: eap-fileview-plain-jar
+          path: server/target/eap-fileview-*.jar
+          if-no-files-found: error
+          retention-days: 30

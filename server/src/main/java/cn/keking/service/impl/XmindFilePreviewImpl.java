@@ -21,7 +21,9 @@ public class XmindFilePreviewImpl implements FilePreview {
 
     @Override
     public String filePreviewHandle(String url, Model model, FileAttribute fileAttribute) {
-        commonPreview.filePreviewHandle(url,model,fileAttribute);
-        return XMIND_FILE_PREVIEW_PAGE;
+        // 修改逻辑：通用取流入口失败时直接展示错误页，成功才进入 XMind 查看器。
+        // 修改原因：复用旧版文件预览修复的通用思路，避免下载失败却显示空白导图。
+        String fallbackPage = commonPreview.filePreviewHandle(url, model, fileAttribute);
+        return fallbackPage == null ? XMIND_FILE_PREVIEW_PAGE : fallbackPage;
     }
 }

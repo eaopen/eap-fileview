@@ -1,0 +1,48 @@
+name: Publish final application image
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+  packages: write
+jobs:
+  application:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - id: version
+        name: Resolve EAP release revision
+        run: |
+          VERSION="$(mvn -q help:evaluate -Dexpression=revision -DforceStdout)"
+          echo "value=$VERSION" >> "$GITHUB_OUTPUT"
+          if [[ "$GITHUB_REF_TYPE" == "tag" && "$GITHUB_REF_NAME" != "v$VERSION" ]]; then
+            echo "Tag must equal v$VERSION" >&2
+            exit 1
+          fi
+      - name: Package only plain JAR
+        run: mvn -B -pl server -am -DskipTests package
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish application on stable runtime image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            APP_VERSION=${{ steps.version.outputs.value }}
+            BASE_IMAGE=ghcr.io/eaopen/eap-fileview-base:java21-lo-r1
+          tags: ghcr.io/eaopen/eap-fileview:${{ steps.version.outputs.value }}
+          cache-from: type=gha,scope=fileview-app
+          cache-to: type=gha,mode=max,scope=fileview-app

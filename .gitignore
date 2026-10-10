@@ -30,3 +30,16 @@ nbdist/
 
 server/src/main/cache/
 server/src/main/file/
+
+# Deployment-specific values and local personal rules
+.env
+.agents-local/
+
+# Windows offline LibreOffice portable distribution (use external installer or Docker runtime)
+server/LibreOfficePortable/
+
+# Maven flatten tool-generated publish metadata
+.flattened-pom.xml
+**/.flattened-pom.xml
+# Sun JDL binary jars: prefer published/licensed Maven artifacts, never tracked inside the source tree
+server/lib/

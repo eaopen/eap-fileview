@@ -1,0 +1,17 @@
+# Docker builds read only the plain JAR, Maven runtime dependencies and config.
+*
+!Dockerfile
+!docker/
+!docker/Dockerfile.base
+!docker/kkfileview-base/
+!docker/kkfileview-base/fonts/
+!docker/kkfileview-base/fonts/**
+!server/
+!server/target/
+!server/target/eap-fileview-*.jar
+!server/target/dependency/
+!server/target/dependency/*.jar
+!server/src/
+!server/src/main/
+!server/src/main/config/
+!server/src/main/config/application.properties

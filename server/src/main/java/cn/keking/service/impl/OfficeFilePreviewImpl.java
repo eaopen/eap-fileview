@@ -6,6 +6,9 @@ import cn.keking.model.ReturnResponse;
 import cn.keking.service.FileHandlerService;
 import cn.keking.service.FilePreview;
 import cn.keking.service.OfficeToPdfService;
+import cn.keking.service.OfficePreviewFallbackConverter;
+import cn.keking.service.OfficeFontDiagnostics;
+import cn.keking.service.OfficePreviewConversion;
 import cn.keking.service.PdfToJpgService;
 import cn.keking.utils.DownloadUtils;
 import cn.keking.utils.FileConvertStatusManager;
@@ -17,6 +20,8 @@ import org.jodconverter.core.office.OfficeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.ui.Model;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -44,6 +49,26 @@ public class OfficeFilePreviewImpl implements FilePreview {
     private final OfficeToPdfService officeToPdfService;
     private final OtherFilePreviewImpl otherFilePreview;
     private final PdfToJpgService pdftojpgservice;
+
+    // Generic optional extension hook: no fallback bean means unchanged upstream behavior.
+    private volatile List<OfficePreviewFallbackConverter> fallbackConverters = List.of();
+
+    // 修改逻辑：文档字体诊断默认关闭，不修改原文件、不影响转 PDF 结果。
+    // 修改原因：仅提供可能缺失字体的定位线索，不能将其视为实际字体替换记录。
+    @Value("${office.font.diagnostics.enabled:false}")
+    private boolean fontDiagnosticsEnabled;
+
+    @Autowired(required = false)
+    public void setFallbackConverters(List<OfficePreviewFallbackConverter> fallbackConverters) {
+        this.fallbackConverters = List.copyOf(fallbackConverters);
+    }
+
+    private void convertOffice(String source, String target, FileAttribute fileAttribute) throws OfficeException {
+        if (fontDiagnosticsEnabled) {
+            OfficeFontDiagnostics.logPotentiallyMissingFonts(java.nio.file.Path.of(source), fileAttribute.getSuffix());
+        }
+        new OfficePreviewConversion(officeToPdfService, fallbackConverters).convert(source, target, fileAttribute);
+    }
 
     public OfficeFilePreviewImpl(FileHandlerService fileHandlerService, OfficeToPdfService officeToPdfService, OtherFilePreviewImpl otherFilePreview, PdfToJpgService pdftojpgservice) {
         this.fileHandlerService = fileHandlerService;
@@ -151,7 +176,7 @@ public class OfficeFilePreviewImpl implements FilePreview {
 
                 // 转换Office到PDF
                 FileConvertStatusManager.updateProgress(cacheName, "正在转换Office到jpg", 60);
-                officeToPdfService.openOfficeToPDF(filePath, outFilePath, fileAttribute);
+                convertOffice(filePath, outFilePath, fileAttribute);
 
 
                 if (fileAttribute.isHtmlView()) {
@@ -277,7 +302,7 @@ public class OfficeFilePreviewImpl implements FilePreview {
             } else {
                 if (StringUtils.hasText(outFilePath)) {
                     try {
-                        officeToPdfService.openOfficeToPDF(filePath, outFilePath, fileAttribute);
+                        convertOffice(filePath, outFilePath, fileAttribute);
                     } catch (OfficeException e) {
                         if (isPwdProtectedOffice && !OfficeUtils.isCompatible(filePath, filePassword)) {
                             // 加密文件密码错误，提示重新输入

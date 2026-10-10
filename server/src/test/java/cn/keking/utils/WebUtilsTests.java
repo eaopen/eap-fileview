@@ -5,6 +5,22 @@ import org.junit.jupiter.api.Test;
 public class WebUtilsTests {
 
     @Test
+    void stripsFullfilenameRegardlessOfQueryPositionWithoutLosingOtherParameters() {
+        org.junit.jupiter.api.Assertions.assertEquals(
+                "https://files.example.com/download?token=123",
+                WebUtils.clearFullfilenameParam("https://files.example.com/download?fullfilename=a.docx&token=123"));
+        org.junit.jupiter.api.Assertions.assertEquals(
+                "https://files.example.com/download?token=123&preview=1",
+                WebUtils.clearFullfilenameParam("https://files.example.com/download?token=123&fullfilename=a.docx&preview=1"));
+        org.junit.jupiter.api.Assertions.assertEquals(
+                "https://files.example.com/download?preview=1",
+                WebUtils.clearFullfilenameParam("https://files.example.com/download?preview=1&fullfilename=a.docx"));
+        org.junit.jupiter.api.Assertions.assertEquals(
+                "https://files.example.com/download?token=123",
+                WebUtils.clearFullfilenameParam("https://files.example.com/download?token=123"));
+    }
+
+    @Test
     void encodeUrlFileNameTest() {
         // 测试对URL中的文件名部分进行UTF-8编码
         String in = "https://file.keking.cn/demo/hello#0.txt";

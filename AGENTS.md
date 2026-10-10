@@ -228,3 +228,11 @@ For preview-related changes, validate as many of these as apply:
 ## Non-Goals
 
 This file is not a replacement for user-facing product documentation. Keep it focused on helping coding agents navigate the codebase and make correct changes faster.
+
+
+## Generic eap-fileview boundary (2026-10-10)
+
+This is an independent general-purpose previewer based on kkFileView v5.0.3.
+CloudFile is an optional default consumer, not a required dependency.
+workflows, business-specific authentication, schema and storage adapters stay downstream.
+Prefer upstream v5 facilities first, and bring in only proven generic fixes with tests.

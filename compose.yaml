@@ -1,0 +1,23 @@
+# Pull-only runtime deployment; no development toolchain or heavy image build required.
+services:
+  eap-fileview:
+    image: ${EAP_FILEVIEW_IMAGE:-ghcr.io/eaopen/eap-fileview:2.9.2}
+    ports:
+      - "127.0.0.1:${EAP_FILEVIEW_PORT:-18012}:8012"
+    environment:
+      KK_CONTEXT_PATH: /fileview
+      KK_SERVER_PORT: "8012"
+      KK_BASE_URL: ${KK_BASE_URL:?set_KK_BASE_URL}
+      KK_TRUST_HOST: ${KK_TRUST_HOST:?set_KK_TRUST_HOST}
+      KK_NOT_TRUST_HOST: ${KK_NOT_TRUST_HOST:-default}
+      KK_ENABLE_REDIRECT: ${KK_ENABLE_REDIRECT:-false}
+      KK_FILE_DIR: /opt/eap-fileview/file
+      KK_CACHE_ENABLED: "true"
+      KK_CACHE_CLEAN_ENABLED: "true"
+      KK_OFFICE_PREVIEW_TYPE: pdf
+    volumes:
+      - fileview-preview-cache:/opt/eap-fileview/file
+    restart: unless-stopped
+
+volumes:
+  fileview-preview-cache:

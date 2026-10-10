@@ -1,4 +1,11 @@
-# kkFileView
+# eap-fileview — OpenEAP preview engine
+
+Based on [kkFileView v5.0.3](https://github.com/kekingcn/kkFileView), this independent
+file-preview service also provides a regular Maven JAR for downstream extensions.
+See the [extension and release guide](doc/EXTENSION_RELEASE.md).
+
+---
+\n# kkFileView
 
 ### Introduction
 
