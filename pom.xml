@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <packaging>pom</packaging>
+
+    <groupId>cn.keking</groupId>
+    <artifactId>kkFileView-parent</artifactId>
+    <version>5.0.3</version>
+
+    <properties>
+        <!-- ========== Java 和编译配置 ========== -->
+        <java.version>21</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.release>${java.version}</maven.compiler.release>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <!-- ========== Spring 框架 ========== -->
+        <spring.boot.version>3.5.6</spring.boot.version>
+
+        <!-- ========== 文档转换和Office处理 ========== -->
+        <jodconverter.version>4.4.11</jodconverter.version>
+        <poi.version>5.2.5</poi.version>
+        <xdocreport.version>1.0.6</xdocreport.version>
+        <aspose-cad.version>25.10</aspose-cad.version>
+
+        <!-- ========== PDF 处理 ========== -->
+        <pdfbox.version>3.0.6</pdfbox.version>
+
+        <!-- ========== 图像处理 ========== -->
+        <jai-imageio.version>1.4.0</jai-imageio.version>
+        <jbig2-imageio.version>3.0.4</jbig2-imageio.version>
+        <commons-imaging.version>1.0.0-alpha6</commons-imaging.version>
+
+        <!-- ========== 视频处理 (JavaCV) ========== -->
+        <bytedeco.version>1.5.12</bytedeco.version>
+        <opencv.version>4.11.0-1.5.12</opencv.version>
+        <openblas.version>0.3.30-1.5.12</openblas.version>
+        <ffmpeg.version>7.1.1-1.5.12</ffmpeg.version>
+
+        <!-- ========== 压缩文件处理 ========== -->
+        <sevenzipjbinding.version>16.02-2.01</sevenzipjbinding.version>
+        <junrar.version>7.5.5</junrar.version>
+
+        <!-- ========== 缓存和存储 ========== -->
+        <redisson.version>4.0.0</redisson.version>
+        <rocksdb.version>5.17.2</rocksdb.version>
+        <concurrentlinkedhashmap.version>1.4.2</concurrentlinkedhashmap.version>
+
+        <!-- ========== 网络通信 ========== -->
+        <httpcomponents.version>4.5.16</httpcomponents.version>
+        <commons-net.version>3.12.0</commons-net.version>
+
+        <!-- ========== Apache Commons 工具库 ========== -->
+        <commons-lang3.version>3.20.0</commons-lang3.version>
+        <commons-cli.version>1.11.0</commons-cli.version>
+
+        <!-- ========== 编码和字符处理 ========== -->
+        <juniversalchardet.version>1.0.3</juniversalchardet.version>
+        <jchardet.version>1.0</jchardet.version>
+
+        <!-- ========== 安全相关 ========== -->
+        <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
+
+        <!-- ========== 其他工具库 ========== -->
+        <xstream.version>1.4.21</xstream.version>
+        <antlr.version>2.7.7</antlr.version>
+        <galimatias.version>0.2.1</galimatias.version>
+    </properties>
+
+    <modules>
+        <module>server</module>
+    </modules>
+
+    <!-- ========== 项目信息 ========== -->
+    <name>kkFileView-parent</name>
+    <description>专注文件在线预览服务</description>
+    <url>https://github.com/kekingcn/kkFileView</url>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>https://github.com/kekingcn/kkFileView</url>
+        <connection>scm:git:git://github.com/kekingcn/kkFileView.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/kekingcn/kkFileView.git</developerConnection>
+    </scm>
+
+    <developers>
+        <developer>
+            <id>klboke</id>
+            <name>kl</name>
+            <email>g632104866@gmail.com</email>
+            <url>http://www.kailing.pub</url>
+        </developer>
+        <developer>
+            <id>gitchenjh</id>
+            <name>chenjinghua</name>
+            <email>842761733@qq.com</email>
+        </developer>
+    </developers>
+
+    <issueManagement>
+        <system>github</system>
+        <url>https://github.com/kekingcn/kkFileView/issues</url>
+    </issueManagement>
+</project>

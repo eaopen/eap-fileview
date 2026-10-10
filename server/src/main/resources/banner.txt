@@ -1,0 +1,15 @@
+
+  _      _      ______   _   _         __      __  _
+ | |    | |    |  ____| (_) | |        \ \    / / (_)
+ | | __ | | __ | |__     _  | |   ___   \ \  / /   _    ___  __      __
+ | |/ / | |/ / |  __|   | | | |  / _ \   \ \/ /   | |  / _ \ \ \ /\ / /
+ |   <  |   <  | |      | | | | |  __/    \  /    | | |  __/  \ V  V /
+ |_|\_\ |_|\_\ |_|      |_| |_|  \___|     \/     |_|  \___|   \_/\_/
+
+ => Java Version            ::  ${java.version}
+ => Spring Boot             ::  ${spring-boot.version}
+ => kkFileView              ::  5.0
+ => Home site               ::  https://kkview.cn
+ => Github                  ::  https://github.com/kekingcn/kkFileView
+ => Gitee                   ::  https://gitee.com/kekingcn/file-online-preview
+ => kk opensource community ::  https://t.zsxq.com/09ZHSXbsQ
