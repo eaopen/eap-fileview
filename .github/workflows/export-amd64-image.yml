@@ -1,0 +1,44 @@
+name: Export verified amd64 eap-fileview image
+# Distribution only. Never rebuilds or republishes the GHCR version.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  packages: read
+jobs:
+  export:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - name: Pull immutable published image (linux/amd64)
+        shell: bash
+        run: |
+          set -euo pipefail
+          image=ghcr.io/eaopen/eap-fileview
+          digest=sha256:00b699e888ac87c0a22dcf886da933d8c328d5f051998eee9eb95b239fbfd23a
+          docker pull --platform linux/amd64 "${image}@${digest}"
+          docker tag "${image}@${digest}" eap-fileview:3.0.2
+          arch=$(docker image inspect --format '{{.Architecture}}' eap-fileview:3.0.2)
+          test "$arch" = amd64
+          {
+            echo "source=${image}:3.0.2@${digest}"
+            echo "platform=linux/amd64"
+            echo "image_id=$(docker image inspect --format '{{.Id}}' eap-fileview:3.0.2)"
+          } > image-provenance.txt
+          cat image-provenance.txt
+      - name: Save amd64 Docker archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker save eap-fileview:3.0.2 | gzip -1 > eap-fileview-3.0.2-linux-amd64.tar.gz
+          gzip -t eap-fileview-3.0.2-linux-amd64.tar.gz
+          shasum -a 256 eap-fileview-3.0.2-linux-amd64.tar.gz | tee -a image-provenance.txt
+          ls -lh eap-fileview-3.0.2-linux-amd64.tar.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: eap-fileview-3.0.2-linux-amd64
+          path: |
+            eap-fileview-3.0.2-linux-amd64.tar.gz
+            image-provenance.txt
+          retention-days: 14
+          if-no-files-found: error
