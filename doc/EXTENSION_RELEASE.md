@@ -42,8 +42,8 @@ Ubuntu 24.04 + OpenJDK 21 + LibreOffice + 开源中文字体 + **Maven 已解析
 该镜像只在 Java/LibreOffice/字体/依赖变化时才考虑手动构建；**当前 Dockerfile 自包含，不需要预先构建此基础镜像**。旧的 r1 镜像标签不能覆盖。
 
 ```bash
-mvn -B -pl server -am -DskipTests package
-docker build -f docker/Dockerfile.base \
+mvn -B -pl server -am -DskipTests clean package
+docker build --target runtime \
   -t ghcr.io/eaopen/eap-fileview-base:java21-sb41-r2 .
 ```
 
@@ -58,7 +58,7 @@ docker compose --env-file .env.example -f compose.yaml -f compose.build.yaml bui
 # 正常部署（镜像已经发布后）：
 cp .env.example .env
 # 修改来源主机白名单和公网访问地址
-docker compose up -d
+docker compose up -d --wait --wait-timeout 180
 ```
 
 GHCR 最终镜像工作流：`.github/workflows/images.yml`，采用 `revision` 作为应用标签；下一次正式版本的 Git tag 应为 `v3.0.3`。
