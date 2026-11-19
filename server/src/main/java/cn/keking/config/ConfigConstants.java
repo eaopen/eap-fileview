@@ -164,7 +164,7 @@ public class ConfigConstants {
     // ==================================================
     // 2. 文件类型配置变量
     // ==================================================
-    private static String[] simTexts = {};
+    private static volatile String[] simTexts = {};
     private static String[] medias = {};
     private static String[] convertMedias = {};
     private static String[] prohibit = {};
@@ -470,7 +470,7 @@ public class ConfigConstants {
     // ==================================================
     @Value("${simText:txt,html,htm,asp,jsp,xml,json,properties,md,gitignore,log,java,py,c,cpp,sql,sh,bat,m,bas,prg,cmd,xbrl}")
     public void setSimText(String simText) { setSimTextValue(simText.split(",")); }
-    public static void setSimTextValue(String[] simText) { ConfigConstants.simTexts = simText; }
+    public static void setSimTextValue(String[] simText) { ConfigConstants.simTexts = simText == null ? new String[0] : simText.clone(); }
 
     @Value("${media:mp3,wav,mp4,flv}")
     public void setMedia(String media) { setMediaValue(media.split(",")); }

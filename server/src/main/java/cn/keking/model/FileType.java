@@ -3,6 +3,7 @@ package cn.keking.model;
 import cn.keking.config.ConfigConstants;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -52,7 +53,6 @@ public enum FileType {
     private static final String[] OFD_TYPES = {"ofd"};
     private static final String[] SVG_TYPES = {"svg"};
     private static final String[] CAD_TYPES = {"dwg", "dxf", "dwf", "iges", "igs", "dwt", "dng", "ifc", "dwfx", "stl", "cf2", "plt"};
-    private static final String[] SSIM_TEXT_TYPES = ConfigConstants.getSimText();
     private static final String[] CODES = {"java", "c", "php", "go", "python", "py", "js", "html", "ftl", "css", "lua", "sh", "rb", "yaml", "yml", "h", "cpp", "cs", "aspx", "jsp", "sql"};
     private static final String[] MEDIA_TYPES = ConfigConstants.getMedia();
     public static final String[] MEDIA_CONVERT_TYPES = ConfigConstants.getConvertMedias();
@@ -67,9 +67,6 @@ public enum FileType {
         }
         for (String archive : ARCHIVE_TYPES) {
             FILE_TYPE_MAPPER.put(archive, FileType.COMPRESS);
-        }
-        for (String text : SSIM_TEXT_TYPES) {
-            FILE_TYPE_MAPPER.put(text, FileType.SIMTEXT);
         }
         for (String media : MEDIA_TYPES) {
             FILE_TYPE_MAPPER.put(media, FileType.MEDIA);
@@ -125,7 +122,25 @@ public enum FileType {
     }
 
     private static FileType to(String fileType) {
-        return FILE_TYPE_MAPPER.getOrDefault(fileType, OTHER);
+        // Built-in format handlers retain priority over project text suffixes.
+        FileType builtIn = FILE_TYPE_MAPPER.get(fileType);
+        if (builtIn != null) {
+            return builtIn;
+        }
+        // Do not freeze Spring-injected configuration at enum initialization time.
+        for (String configured : ConfigConstants.getSimText()) {
+            if (configured == null) {
+                continue;
+            }
+            String suffix = configured.trim();
+            if (suffix.startsWith(".")) {
+                suffix = suffix.substring(1);
+            }
+            if (fileType.equalsIgnoreCase(suffix)) {
+                return SIMTEXT;
+            }
+        }
+        return OTHER;
     }
 
     /**
@@ -142,7 +157,7 @@ public enum FileType {
 
     public static FileType typeFromFileName(String fileName) {
         String fileType = fileName.substring(fileName.lastIndexOf(".") + 1);
-        String lowerCaseFileType = fileType.toLowerCase();
+        String lowerCaseFileType = fileType.toLowerCase(Locale.ROOT);
         return FileType.to(lowerCaseFileType);
     }
 
