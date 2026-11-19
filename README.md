@@ -2,9 +2,9 @@
 
 An **independently deployable and extensible file preview engine**, derived from [kkFileView v5.0.3](https://github.com/kekingcn/kkFileView). It runs as a Docker service or can be embedded through a **regular Maven JAR**, independently of any particular business application.
 
-**Default and actively maintained branch: `dev` — v3.0.2, Java 21, Spring Boot 4.1.1.**
+**Default and actively maintained branch: `dev` — v3.0.3 (unreleased), Java 21, Spring Boot 4.1.2.**
 
-[中文说明](README.cn.md) · [Extensions and publishing](doc/EXTENSION_RELEASE.md) · [Branch rules](doc/BRANCHING.md) · [Original kkFileView documentation](doc/kkfileview/README.md)
+[Spring Boot 4.1.2 upgrade review](doc/SPRING_BOOT_412_UPGRADE.md) · [中文说明](README.cn.md) · [Extensions and publishing](doc/EXTENSION_RELEASE.md) · [Branch rules](doc/BRANCHING.md) · [Original kkFileView documentation](doc/kkfileview/README.md)
 
 ## What it provides
 
@@ -26,7 +26,7 @@ FilePreviewProvider and OfficePreviewFallbackConverter are optional. Authenticat
 
 | Branch | Purpose | Runtime |
 | --- | --- | --- |
-| **`dev`** | **Default, only actively maintained development branch** | **3.0.2 / Java 21 / Spring Boot 4.1.1** |
+| **`dev`** | **Default, only actively maintained development branch** | **3.0.3 (unreleased) / Java 21 / Spring Boot 4.1.2** |
 | `boot3` | Historical compatibility snapshot; **no separate maintenance** | 2.9.2 / Java 21 / Spring Boot 3.5.6 |
 
 Create focused feature/fix branches from `dev`; after CI, Docker startup and representative preview checks, tag the approved `dev` commit for release. See [branch policy](doc/BRANCHING.md).
@@ -40,7 +40,7 @@ java -version
 mvn -B -pl server -am -DskipTests clean package
 ```
 
-Output: `server/target/eap-fileview-3.0.2.jar`, with `server/target/dependency/` used only to assemble the reusable Docker runtime. **No executable JAR or legacy distribution archive.**
+Output: `server/target/eap-fileview-3.0.3.jar`, with `server/target/dependency/` used only to assemble the self-contained runtime. **No executable JAR or legacy distribution archive.**
 
 Run the portable test suite (three additional environment-dependent tests need LibreOffice or SevenZip JNI locally):
 
@@ -56,19 +56,19 @@ mvn -B -pl server -am \
 
 ```mermaid
 flowchart LR
-    src["Java 21 / Maven sources"] --> jar["Regular JAR<br/>eap-fileview-3.0.2.jar"]
-    src --> deps["Runtime dependencies<br/>target/dependency/"]
-    deps --> base["Stable base image<br/>JRE 21 + LibreOffice + fonts + libs"]
-    jar --> app["Final app image<br/>regular JAR + config"]
-    base --> app
-    jar -.->|"optional embedding"| consumer["Independent Spring Boot application"]
-    app --> compose["Docker Compose deployment"]
+    src["Java 21 / Maven sources"] --> jar["Regular JAR<br/>eap-fileview-3.0.3.jar"]
+    src --> deps["Current runtime dependencies<br/>target/dependency/"]
+    env["Ubuntu 24.04<br/>JRE 21 + LibreOffice + fonts"] --> app["Self-contained app image"]
+    deps --> app
+    jar --> app
+    jar -.-> consumer["Optional embedded Boot app"]
+    app --> compose["Docker Compose local build"]
 ```
 
 Rebuild the stable base only when the JDK, LibreOffice, fonts or dependency set changes. Ordinary application code updates can reuse it.
 
 
-Using a **published** image:
+Using the last **published** 3.0.2 image (Boot 4.1.1); 3.0.3 is not yet released:
 
 ```bash
 cp .env.example .env
@@ -76,16 +76,14 @@ cp .env.example .env
 docker compose up -d
 ```
 
-To build locally, package the JAR first, then:
+To build the unreleased version locally, first run Maven clean package. The Dockerfile is self-contained:
 
 ```bash
-docker build -f docker/Dockerfile.base \
-  -t ghcr.io/eaopen/eap-fileview-base:java21-sb41-r1 .
 docker compose -f compose.yaml -f compose.build.yaml build
 docker compose -f compose.yaml -f compose.build.yaml up -d
 ```
 
-The versioned intermediate image holds Java 21, LibreOffice, fonts and Maven runtime dependencies; the application image adds only the normal JAR and config. Compose defaults to `127.0.0.1:18012` and the `/fileview` context path. Verify actual [image publication status](https://github.com/eaopen/eap-fileview/actions) before attempting a pull.
+The current application Dockerfile is self-contained: Java 21, LibreOffice, fonts, runtime dependencies and the ordinary JAR. The separately published base image is optional and not used by this Dockerfile. Compose defaults to `127.0.0.1:18012` and the `/fileview` context path. Verify actual [image publication status](https://github.com/eaopen/eap-fileview/actions) before attempting a pull.
 
 ## Downstream Java integration
 

@@ -6,7 +6,7 @@
 
 ## 解决方案定位
 
-eap-fileview 基于 kkFileView v5.0.3 独立演进，当前 dev 版本 3.0.2，技术基线为 JDK 21 + Spring Boot 4.1.1。支持独立 HTTP 服务部署与普通 Maven JAR 嵌入式复用，面向 Office/WPS、PDF/OFD、图片、压缩包、XMind、文本、CAD 和 3D 等文件预览。
+eap-fileview 基于 kkFileView v5.0.3 独立演进，当前 dev 版本 3.0.3（未发布），技术基线为 JDK 21 + Spring Boot 4.1.2。支持独立 HTTP 服务部署与普通 Maven JAR 嵌入式复用，面向 Office/WPS、PDF/OFD、图片、压缩包、XMind、文本、CAD 和 3D 等文件预览。
 
 ## HTTP 预览架构
 
@@ -21,15 +21,15 @@ eap-fileview 基于 kkFileView v5.0.3 独立演进，当前 dev 版本 3.0.2，�
 
 ## Maven 与 Docker 分层
 
-**普通 Maven JAR**：io.github.eaopen:eap-fileview:3.0.2，供 JDK 21 + Spring Boot 4.1 应用按需导入，扩展组件入口为 EapFileViewComponents。
+**普通 Maven JAR**：开发版本为 io.github.eaopen:eap-fileview:3.0.3（未发布）；最近发布版本仍是 3.0.2，供 JDK 21 + Spring Boot 4.1 应用按需导入，扩展组件入口为 EapFileViewComponents。
 
-**稳定 Docker 基础镜像**：JRE 21、LibreOffice、字体和构建时解析的 Maven 运行依赖。应用镜像在基础镜像上新增普通 JAR 和配置，通过 Docker Compose 部署。
+**当前 Docker 应用镜像**：直接包含 JRE 21、LibreOffice、字体、运行依赖和普通 JAR；独立的基础镜像为可选手动维护产物，不是应用镜像的构建前置。
 
 只发布普通 JAR 与 Docker 镜像；不需要可执行 Fat JAR。target/dependency 是构建镜像使用的依赖目录，而不是额外发布产品。
 
 ## 分支与验证边界
 
-dev：v3.0.2 / JDK 21 / Spring Boot 4.1.1，唯一日常开发线。boot3：v2.9.2 / JDK 21 / Spring Boot 3.5.6，只保留历史兼容快照。
+dev：v3.0.3（未发布） / JDK 21 / Spring Boot 4.1.2，唯一日常开发线。boot3：v2.9.2 / JDK 21 / Spring Boot 3.5.6，只保留历史兼容快照。
 
 105 项可移植测试已通过。LibreOffice/SevenZip 相关环境测试、真实文件预览样本和完整 Docker 启动仍应单独验证；架构图并不代表已完成全部运行验收。
 

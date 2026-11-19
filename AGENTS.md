@@ -5,7 +5,7 @@ Active coding guidance for this repository. The original kkFileView agent instru
 ## Scope and branches
 
 - Project: `io.github.eaopen:eap-fileview`, based on kkFileView v5.0.3.
-- **`dev` is the GitHub default and only maintained development line:** revision 3.0.2, **JDK 21 / Spring Boot 4.1.1 / Spring Framework 7 / Jackson 3**.
+- **`dev` is the GitHub default and only maintained development line:** revision 3.0.3 (unreleased), **JDK 21 / Spring Boot 4.1.2 / Spring Framework 7 / Jackson 3**.
 - `boot3` is a **frozen historical reference** (2.9.2 / Boot 3.5.6), not a maintained branch; do not add features, routine CI or separate release processes there.
 - The upstream remote is **fetch-only**. Preserve original kkFileView credits/licensing, avoid copying upstream Boot 3 POM or old deployment automation into `dev`.
 
@@ -55,9 +55,9 @@ The portable suite excludes three tests requiring local LibreOffice and/or Seven
 
 ## Deployment and publishing
 
-- Ordinary Maven dependency: `io.github.eaopen:eap-fileview:3.0.2`.
-- Stable Docker base: `ghcr.io/eaopen/eap-fileview-base:java21-sb41-r1`; final image: `ghcr.io/eaopen/eap-fileview:3.0.2`. Do not reuse the Boot 4.0 runtime-dependency base for Boot 4.1.
-- The base includes Java 21, LibreOffice, fonts and resolved dependencies; the app layer adds only regular JAR and config. Local build must prepare Maven output first.
+- Latest published Maven dependency: `io.github.eaopen:eap-fileview:3.0.2`. Dev 3.0.3 is not published.
+- Optional future base image: `ghcr.io/eaopen/eap-fileview-base:java21-sb41-r2`. Last released application image: `ghcr.io/eaopen/eap-fileview:3.0.2`.
+- The current Dockerfile is self-contained. Always run Maven clean package after dependency changes to avoid stale runtime dependency JARs.
 - Central and CNB use **the same organization publishing identity and authorization practices as eap-boot**. Credentials belong in GitHub Actions environments / private Maven settings, never in code.
 - No `systemPath` JARs, redistributable unlicensed commercial libraries, leaked signing keys or invented publication claims.
 - Docker and Maven Central availability must be verified independently; compilation alone does not establish release availability.

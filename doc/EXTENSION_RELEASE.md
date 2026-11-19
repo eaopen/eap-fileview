@@ -5,9 +5,9 @@
 ## 项目定位与版本
 
 本项目是基于 kkFileView 5.0.3 的独立通用文件预览引擎，不依赖特定业务系统。
-版本管理机制、发布身份和账号参考 [eap-boot](https://github.com/eaopen/eap-boot)：`io.github.eaopen` Maven 组织、CI-friendly `${revision}` 属性、`ossrh`/ `cnb` 发布 profile、相同的项目所有权及授权治理。当前 dev 版本 `3.0.2`（历史兼容分支 boot3 为 2.9.2），上游 kkFileView 版本单独维护，不放进正式 Maven 发布号。新修订版可通过 `-Drevision=3.0.3` 覆盖，每次发布必须为新版本，不覆盖已经发布的版本。
+版本管理机制、发布身份和账号参考 [eap-boot](https://github.com/eaopen/eap-boot)：`io.github.eaopen` Maven 组织、CI-friendly `${revision}` 属性、`ossrh`/ `cnb` 发布 profile、相同的项目所有权及授权治理。当前 dev 版本 `3.0.3`（尚未发布）（历史兼容分支 boot3 为 2.9.2），上游 kkFileView 版本单独维护，不放进正式 Maven 发布号。后续新版本可通过 `-Drevision=...` 覆盖，每次发布必须为新版本，不覆盖已经发布的版本。
 
-**仅对外输出两类产物**：
+**最近已发布版本仍是 3.0.2；开发中的 3.0.3 尚未发布。正式发布仅输出两类产物**：
 - 普通 Maven JAR：`io.github.eaopen:eap-fileview:3.0.2`，源码和 Javadoc 附件，供下游开发复用。
 - Docker 镜像：`ghcr.io/eaopen/eap-fileview:3.0.2`，独立启动运行。
 
@@ -15,7 +15,7 @@
 
 ## JDK 兼容性
 
-**账号及发布治理与 eap-boot 共用，版本独立维护。** 本项目 JDK 21 + Spring Boot 4.1.1 + Spring Framework 7。
+**账号及发布治理与 eap-boot 共用，版本独立维护。** 本项目 JDK 21 + Spring Boot 4.1.2 + Spring Framework 7。
 普通 Maven JAR 面向 JDK 21 / Spring Boot 4.1 的使用方；其他环境可通过 Docker HTTP 服务接入。
 不允许把 `3.0.2` 当成 JDK 17 兼容承诺。若仍有 Java 17 环境，先独立 Docker 服务化，通过 HTTP 预览接口调用，避免运行时冲突。
 
@@ -37,17 +37,17 @@ Spring Boot 应用通过 `@Import(EapFileViewComponents.class)` 导入通用组�
 
 ### 稳定中间镜像（低频）
 
-`ghcr.io/eaopen/eap-fileview-base:java21-sb41-r1`：
+`ghcr.io/eaopen/eap-fileview-base:java21-sb41-r2`（可选，尚未发布）：
 Ubuntu 24.04 + OpenJDK 21 + LibreOffice + 开源中文字体 + **Maven 已解析运行时依赖**。
-该镜像只在 Java/LibreOffice/字体/依赖版本发生实际变化时重新发布；**不随应用修订版每次重建**。
+该镜像只在 Java/LibreOffice/字体/依赖变化时才考虑手动构建；**当前 Dockerfile 自包含，不需要预先构建此基础镜像**。旧的 r1 镜像标签不能覆盖。
 
 ```bash
 mvn -B -pl server -am -DskipTests package
 docker build -f docker/Dockerfile.base \
-  -t ghcr.io/eaopen/eap-fileview-base:java21-sb41-r1 .
+  -t ghcr.io/eaopen/eap-fileview-base:java21-sb41-r2 .
 ```
 
-基础镜像 GitHub Actions：`.github/workflows/base-image.yml`，手动触发，使用 GHCR GitHub Token 身份登录；变更中间镜像后需要手动提升 `java21-lo-rN` 稳定标签，不能复写旧稳定发行版。不要把运行依赖拷入源码 Git 仓库。
+基础镜像 GitHub Actions：`.github/workflows/base-image.yml`，手动触发，使用 GHCR GitHub Token 身份登录；变更中间镜像后需要使用新的 `java21-sb41-rN` 稳定标签，不能复写旧稳定发行版。不要把运行依赖拷入源码 Git 仓库。
 
 ### 最终应用镜像（按业务版本）
 
@@ -61,7 +61,7 @@ cp .env.example .env
 docker compose up -d
 ```
 
-GHCR 最终镜像工作流：`.github/workflows/images.yml`，采用 `revision` 作为应用标签；若使用 Git tag，应为 `v3.0.2`。
+GHCR 最终镜像工作流：`.github/workflows/images.yml`，采用 `revision` 作为应用标签；下一次正式版本的 Git tag 应为 `v3.0.3`。
 
 ## Maven 仓库与发布身份
 
@@ -94,7 +94,7 @@ Aspose.CAD 25.10 属于独立的第三方商业依赖。发布包含该 JAR 的�
 应核实组织已获得适用的使用和分发许可；如无分发权，应将它作为下游自行装配的可选 CAD 扩展。
 
 
-## Spring Boot 4 upgrade validation (2026-10-10)
+## Historical Spring Boot 4 upgrade validation (2026-10-10)
 
 Official kkFileView v5.0.3 is based on Boot 3.5.6. eap-fileview upgrades
 independently to JDK 21 / Boot 4.1.1 / Framework 7 / Jackson 3.
@@ -104,14 +104,14 @@ TestRestTemplate test module and Boot 4 liveness/readiness default settings.
 105 portable tests pass. Linux-specific LibreOffice/SevenZip integration tests remain to run.
 
 Runtime dependency JARs are baked into the stable base image, so Boot 3 to Boot 4
-requires a NEW base image tag java21-sb41-r1. Never reuse the Boot 3 dependency base
+required a NEW base image tag java21-sb41-r1. Never reuse the Boot 3 dependency base
 tag java21-lo-r1 for Boot 4 jars.
 
 
 ## Branch and release workflow (2026-10-10)
 
 The GitHub default branch is dev, formerly named boot4. This is the only
-actively maintained development branch, currently 3.0.2 / JDK21 / Boot 4.1.1.
+actively maintained development branch, at that time 3.0.2 / JDK21 / Boot 4.1.1.
 
 - Feature work / regular security fixes: feature/fix branch from dev -> tested PR into dev.
 - No separate main/release branch. When CI, Linux LibreOffice/SevenZip,
@@ -123,6 +123,6 @@ actively maintained development branch, currently 3.0.2 / JDK21 / Boot 4.1.1.
   ported to dev without replacing the Boot 4.1 Maven dependency definitions.
 
 Output remains regular Maven JAR + Docker image, without executable JAR.
-The stable runtime dependencies are pinned to java21-sb41-r1 (not the old Boot 4.0
+At that time, optional runtime dependencies were pinned to java21-sb41-r1 (not the old Boot 4.0
 base java21-sb4-r1). Publishing identities and authorizations use the same
 eap-boot organization settings. See [BRANCHING.md](BRANCHING.md).

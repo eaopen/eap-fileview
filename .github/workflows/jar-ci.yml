@@ -20,7 +20,18 @@ jobs:
       - name: Test portable suite
         run: mvn -B -pl server -am '-Dtest=*,!EncodingTests,!ServerMainTests,!ArchiveTraversalSecurityTests' -Dsurefire.failIfNoSpecifiedTests=false test
       - name: Build regular library jar
-        run: mvn -B -pl server -am -DskipTests package
+        run: mvn -B -pl server -am -DskipTests clean package
+      - name: Verify matching Spring Boot runtime libraries
+        run: |
+          set -euo pipefail
+          deps=server/target/dependency
+          test -f "$deps/spring-boot-4.1.2.jar"
+          test -f "$deps/spring-webmvc-7.0.10.jar"
+          test -f "$deps/jackson-databind-3.1.7.jar"
+          if find "$deps" -maxdepth 1 -type f -name 'spring-boot-*.jar' ! -name '*-4.1.2.jar' | grep -q .; then
+            echo "Mixed Spring Boot versions in runtime dependency directory" >&2
+            exit 1
+          fi
       - name: Upload only plain JAR
         uses: actions/upload-artifact@v4
         with:

@@ -15,7 +15,7 @@ WORKDIR /opt/eap-fileview
 # Copy Maven runtime jars resolved by the release build.
 COPY server/target/dependency/ ./lib/
 ENV LANG=zh_CN.UTF-8 LC_ALL=zh_CN.UTF-8
-ARG APP_VERSION=3.0.2
+ARG APP_VERSION=3.0.3
 COPY server/target/eap-fileview-${APP_VERSION}.jar ./app.jar
 COPY server/src/main/config/application.properties ./config/application.properties
 ENV KK_CONTEXT_PATH=/fileview KK_SERVER_PORT=8012 KK_FILE_DIR=/opt/eap-fileview/file
