@@ -34,7 +34,11 @@ Explicitly pinned file-preview dependencies such as JODConverter 4.4.11, PDFBox 
 - Maven clean package: **BUILD SUCCESS**, ordinary eap-fileview-3.0.3.jar produced.
 - The packaged runtime dependency folder contains 166 jars, with Boot 4.1.2 / Spring MVC 7.0.10 / Jackson 3.1.7 / Tomcat 11.0.27 and no mixed old Spring Boot jars.
 - Compose configuration separately verified: local source build is tagged eap-fileview:dev using APP_VERSION=3.0.3; published runtime deployment remains ghcr.io/eaopen/eap-fileview:3.0.2.
-- Linux LibreOffice/SevenZip, real-file preview and Docker startup should still be verified independently before the actual release.
+- Locally built the self-contained **linux/arm64** Docker image and verified HTTP Actuator returned 200 with UP.
+- Verified LibreOffice 24.2.7.2 CLI conversion of HTML and DOCX samples to valid PDF.
+- Verified the real viewer flow via an isolated Docker network: a sample DOCX served over HTTP was requested using /onlinePreview, returned HTTP 200, and the viewer produced a PDF with an OfficeToPdfService success log.
+- The JODConverter-managed LibreOffice processes initially exited with code 81, then restarted and connected to both ports; conversion completed. A separate config watcher logged a missing server/src/main/config runtime path. These runtime warnings should be triaged independently; neither prevented the tested preview conversion.
+- Linux amd64 startup, platform-specific LibreOffice/SevenZip tests and representative real Etech/CloudFile files still remain full-release gates.
 
 ## Validation and publishing gates
 
