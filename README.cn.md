@@ -102,6 +102,7 @@ docker compose -f compose.yaml -f compose.build.yaml up -d
 - [解决方案与系统架构详解](doc/ARCHITECTURE.md)
 - [扩展接口、Maven/JAR、Docker 镜像与发布](doc/EXTENSION_RELEASE.md)
 - [通用 HTTP 文件预览集成规范](doc/HTTP_PREVIEW_INTEGRATION.md)
+- [CAD 外部转换产物接入（开源免费优先，可选商业扩展）](doc/CAD_CONVERSION_ADAPTER.md)
 - [通用预览能力核查与改进记录](doc/PREVIEW_CAPABILITY_REVIEW.md)
 - [分支与版本管理](doc/BRANCHING.md)
 - [为何独立迁移 Spring Boot 4](doc/UPSTREAM_SPRING_BOOT4_ASSESSMENT.md)
