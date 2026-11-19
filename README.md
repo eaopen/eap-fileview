@@ -73,14 +73,16 @@ Using the last **published** 3.0.2 image (Boot 4.1.1); 3.0.3 is not yet released
 ```bash
 cp .env.example .env
 # Configure KK_BASE_URL and KK_TRUST_HOST inside .env
-docker compose up -d
+docker compose up -d --wait --wait-timeout 180
 ```
+
+Before upgrading, record the current `EAP_FILEVIEW_IMAGE`. Set it to the target version tag or digest, run `docker compose pull`, then repeat the startup command. To roll back, restore the previous image reference and repeat both commands. Compose waits for the health check and keeps the preview cache in its named volume.
 
 To build the unreleased version locally, first run Maven clean package. The Dockerfile is self-contained:
 
 ```bash
-docker compose -f compose.yaml -f compose.build.yaml build
-docker compose -f compose.yaml -f compose.build.yaml up -d
+mvn -B -pl server -am -DskipTests clean package
+docker compose -f compose.yaml -f compose.build.yaml up -d --build --wait --wait-timeout 180
 ```
 
 The current application Dockerfile is self-contained: Java 21, LibreOffice, fonts, runtime dependencies and the ordinary JAR. The separately published base image is optional and not used by this Dockerfile. Compose defaults to `127.0.0.1:18012` and the `/fileview` context path. Verify actual [image publication status](https://github.com/eaopen/eap-fileview/actions) before attempting a pull.

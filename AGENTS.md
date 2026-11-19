@@ -26,7 +26,7 @@ Active coding guidance for this repository. The original kkFileView agent instru
 - `server/src/main/resources/web/`: FreeMarker viewer templates.
 - `server/src/main/resources/static/`: viewer JS/CSS/assets.
 - `server/src/main/config/`: application and test runtime properties.
-- `Dockerfile`: thin app layer; `docker/Dockerfile.base`: stable Java/LibreOffice/dependencies layer.
+- `Dockerfile`: shared `runtime` stage for Java/LibreOffice/dependencies and a thin `application` stage.
 - `compose.yaml` and `compose.build.yaml`: pull-only and local-build Compose configurations.
 - `.github/workflows/`: active GitHub CI, CNB/Central Maven publishing and image workflows.
 - `doc/kkfileview/`: preserved upstream README, original AGENTS, CI/E2E notes. These are **not current runbooks**.

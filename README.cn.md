@@ -71,14 +71,16 @@ flowchart LR
 ```bash
 cp .env.example .env
 # 修改 .env 中的 KK_BASE_URL / KK_TRUST_HOST 等配置
-docker compose up -d
+docker compose up -d --wait --wait-timeout 180
 ```
+
+升级前记录当前 `EAP_FILEVIEW_IMAGE`，将其改为目标版本标签或摘要，执行 `docker compose pull` 后重跑启动命令。需要回退时恢复原镜像引用并重跑这两步。Compose 等待健康检查通过，预览缓存保存在命名卷中。
 
 自行构建开发镜像时，先执行 Maven clean package；Dockerfile 自包含运行环境，不需要预先构建基础镜像：
 
 ```bash
-docker compose -f compose.yaml -f compose.build.yaml build
-docker compose -f compose.yaml -f compose.build.yaml up -d
+mvn -B -pl server -am -DskipTests clean package
+docker compose -f compose.yaml -f compose.build.yaml up -d --build --wait --wait-timeout 180
 ```
 
 **当前应用镜像自包含** Java 21、LibreOffice、字体、运行依赖和普通 JAR；单独的基础镜像属于可选产物，并非当前 Dockerfile 的前置依赖。默认监听容器内 8012，Compose 映射本机 `127.0.0.1:18012`，上下文路径 `/fileview`。镜像是否已公开可拉取以 [GitHub Actions 发布记录](https://github.com/eaopen/eap-fileview/actions) 为准。

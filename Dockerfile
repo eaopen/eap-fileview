@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 # Self-contained runtime: avoid dependency on a separately published GHCR base package.
-FROM ubuntu:24.04
+FROM ubuntu:24.04 AS runtime
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -15,6 +15,8 @@ WORKDIR /opt/eap-fileview
 # Copy Maven runtime jars resolved by the release build.
 COPY server/target/dependency/ ./lib/
 ENV LANG=zh_CN.UTF-8 LC_ALL=zh_CN.UTF-8
+
+FROM runtime AS application
 ARG APP_VERSION=3.0.3
 COPY server/target/eap-fileview-${APP_VERSION}.jar ./app.jar
 COPY server/src/main/config/application.properties ./config/application.properties

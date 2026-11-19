@@ -17,6 +17,20 @@ services:
       KK_OFFICE_PREVIEW_TYPE: pdf
     volumes:
       - fileview-preview-cache:/opt/eap-fileview/file
+    healthcheck:
+      test:
+        - CMD
+        - bash
+        - -ec
+        - |
+          exec 3<>/dev/tcp/127.0.0.1/8012
+          printf 'GET /fileview/actuator/health HTTP/1.0\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3
+          read -r proto status rest <&3
+          test "$$status" = 200
+      interval: 15s
+      timeout: 5s
+      retries: 4
+      start_period: 60s
     restart: unless-stopped
 
 volumes:

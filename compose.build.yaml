@@ -2,6 +2,7 @@
 services:
   eap-fileview:
     image: ${EAP_FILEVIEW_BUILD_IMAGE:-eap-fileview:dev}
+    pull_policy: build
     build:
       context: .
       dockerfile: Dockerfile
