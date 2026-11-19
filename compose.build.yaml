@@ -1,8 +1,9 @@
-# Optional local build; base must first be built or published for the selected version.
+# Optional local development build; never retag the released 3.0.2 image.
 services:
   eap-fileview:
+    image: ${EAP_FILEVIEW_BUILD_IMAGE:-eap-fileview:dev}
     build:
       context: .
       dockerfile: Dockerfile
       args:
-        APP_VERSION: ${EAP_FILEVIEW_VERSION:-3.0.2}
+        APP_VERSION: ${EAP_FILEVIEW_VERSION:-3.0.3}

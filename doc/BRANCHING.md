@@ -4,8 +4,8 @@
 
 **`dev` is the GitHub default and the only actively maintained development line.** It is the former `boot4` branch:
 
-- Release `revision`: **3.0.2**
-- Runtime: **JDK 21 / Spring Boot 4.1.1 / Spring Framework 7**
+- Release `revision`: **3.0.3** (unreleased)
+- Runtime: **JDK 21 / Spring Boot 4.1.2 / Spring Framework 7**
 - Source baseline: kkFileView 5.0.3 with selected general-purpose fixes
 - Downstream Java 21 / Spring Boot 4.1 applications can embed the regular JAR or use the HTTP preview interface.
 
@@ -13,7 +13,7 @@ Use focused `feature/*` or `fix/*` branches from `dev`; review and merge PRs int
 
 ## Release policy
 
-The repository intentionally has no permanent release-only branch. `dev` is both the only active development line and the source of reviewed release tags. After CI, Linux LibreOffice/SevenZip checks, Docker startup, and representative Office/PDF/XMind previews, tag the approved `dev` commit as `v3.0.2` (or the matching revision). Publishing remains a separate authorized action.
+The repository intentionally has no permanent release-only branch. `dev` is both the only active development line and the source of reviewed release tags. After CI, Linux LibreOffice/SevenZip checks, Docker startup, and representative Office/PDF/XMind previews, tag the approved `dev` commit as `v3.0.3` (or the matching revision). Publishing remains a separate authorized action.
 
 ## Frozen Boot 3.5 reference
 
@@ -25,4 +25,4 @@ The upstream kkFileView Git remote stays fetch-only. Review and cherry-pick rele
 
 Maven group `io.github.eaopen`, CNB and Central publishing accounts, GPG signing and authorization follow the organization's existing eap-boot setup, while the fileview `revision` is independently versioned.
 
-Outputs are a **regular Maven JAR plus Docker image** only. Base image `java21-sb41-r1` carries stable runtime dependencies; application changes go into the thin final image. Never claim a release exists until the repository/registry confirms publication.
+Outputs are a **regular Maven JAR plus Docker image** only. Current Dockerfile builds a self-contained image. The optional next base image is `java21-sb41-r2`; never overwrite the previously published r1 tag. Never claim a release exists until the repository/registry confirms publication.

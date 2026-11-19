@@ -2,7 +2,7 @@
 
 基于 [kkFileView v5.0.3](https://github.com/kekingcn/kkFileView) 演进的独立通用文件预览组件，支持 Docker 服务和普通 Maven JAR 二次开发，不依赖特定业务系统。
 
-**当前默认开发分支 `dev`：v3.0.2 · JDK 21 · Spring Boot 4.1.1。**
+**当前默认开发分支 `dev`：v3.0.3（未发布） · JDK 21 · Spring Boot 4.1.2。**
 
 ## 架构与边界
 
@@ -24,7 +24,7 @@
 
 | 分支 | 定位 | 版本 / 技术基线 |
 | --- | --- | --- |
-| **`dev`** | **默认分支，唯一日常开发线** | **3.0.2 / JDK 21 / Spring Boot 4.1.1** |
+| **`dev`** | **默认分支，唯一日常开发线** | **3.0.3（未发布） / JDK 21 / Spring Boot 4.1.2** |
 | `boot3` | 历史 Boot 3.5 兼容快照，**不再单独维护** | 2.9.2 / JDK 21 / Spring Boot 3.5.6 |
 
 新功能与修复从 `dev` 建立短期分支、经测试合入；完成 Docker 启动、平台测试和真实预览验收后，直接在审核通过的 `dev` 提交上创建正式版本标签。见 [分支规则](doc/BRANCHING.md)。
@@ -38,7 +38,7 @@ java -version
 mvn -B -pl server -am -DskipTests clean package
 ```
 
-构建输出只有**普通 JAR**（例如 `server/target/eap-fileview-3.0.2.jar`）；`server/target/dependency/` 是供 Docker 使用的运行依赖目录。**不再生成可执行 Fat JAR** 或旧版压缩分发包。
+构建输出只有**普通 JAR**（例如 `server/target/eap-fileview-3.0.3.jar`）；`server/target/dependency/` 是供 Docker 使用的运行依赖目录。**不再生成可执行 Fat JAR** 或旧版压缩分发包。
 
 运行本机可执行的核心测试（另外三项需有本机 LibreOffice / SevenZip 运行环境）：
 
@@ -54,19 +54,19 @@ mvn -B -pl server -am \
 
 ```mermaid
 flowchart LR
-    src["Java 21 / Maven 源码"] --> jar["普通 JAR<br/>eap-fileview-3.0.2.jar"]
-    src --> deps["Maven 运行依赖<br/>target/dependency/"]
-    deps --> base["稳定基础镜像<br/>JRE 21 + LibreOffice + 字体 + 依赖"]
-    jar --> app["最终应用镜像<br/>普通 JAR + 配置"]
-    base --> app
-    jar -.->|"可选嵌入"| consumer["独立 Spring Boot 应用"]
-    app --> compose["Docker Compose 部署"]
+    src["Java 21 / Maven 源码"] --> jar["普通 JAR<br/>eap-fileview-3.0.3.jar"]
+    src --> deps["当前运行依赖<br/>target/dependency/"]
+    env["Ubuntu 24.04<br/>JRE 21 + LibreOffice + 字体"] --> app["自包含应用镜像"]
+    deps --> app
+    jar --> app
+    jar -.-> consumer["可选嵌入 Spring Boot 应用"]
+    app --> compose["Docker Compose 本地构建"]
 ```
 
 基础镜像随 Java、LibreOffice、字体或依赖更新；日常仅改本项目应用代码时，可复用它而不必重新构建运行环境。
 
 
-正常部署使用已发布的镜像，不必在目标机器编译 Java：
+正常部署仍使用已发布的 3.0.2 镜像（Boot 4.1.1）；3.0.3 尚未发布：
 
 ```bash
 cp .env.example .env
@@ -74,16 +74,14 @@ cp .env.example .env
 docker compose up -d
 ```
 
-自行构建镜像时，先执行上面的 Maven 打包命令，并先构建可复用的基础镜像：
+自行构建开发镜像时，先执行 Maven clean package；Dockerfile 自包含运行环境，不需要预先构建基础镜像：
 
 ```bash
-docker build -f docker/Dockerfile.base \
-  -t ghcr.io/eaopen/eap-fileview-base:java21-sb41-r1 .
 docker compose -f compose.yaml -f compose.build.yaml build
 docker compose -f compose.yaml -f compose.build.yaml up -d
 ```
 
-**基础镜像**包含 JDK 21、LibreOffice、字体和 Maven 运行依赖；**应用镜像**在其上叠加普通 JAR 和配置。默认监听容器内 8012，Compose 映射本机 `127.0.0.1:18012`，上下文路径 `/fileview`。镜像是否已公开可拉取以 [GitHub Actions 发布记录](https://github.com/eaopen/eap-fileview/actions) 为准。
+**当前应用镜像自包含** Java 21、LibreOffice、字体、运行依赖和普通 JAR；单独的基础镜像属于可选产物，并非当前 Dockerfile 的前置依赖。默认监听容器内 8012，Compose 映射本机 `127.0.0.1:18012`，上下文路径 `/fileview`。镜像是否已公开可拉取以 [GitHub Actions 发布记录](https://github.com/eaopen/eap-fileview/actions) 为准。
 
 ## Maven 依赖与二次开发
 
@@ -106,6 +104,7 @@ docker compose -f compose.yaml -f compose.build.yaml up -d
 - [CAD 外部转换产物接入（开源免费优先，可选商业扩展）](doc/CAD_CONVERSION_ADAPTER.md)
 - [通用预览能力核查与改进记录](doc/PREVIEW_CAPABILITY_REVIEW.md)
 - [分支与版本管理](doc/BRANCHING.md)
+- [Spring Boot 4.1.2 及运行依赖升级评估](doc/SPRING_BOOT_412_UPGRADE.md)
 - [为何独立迁移 Spring Boot 4](doc/UPSTREAM_SPRING_BOOT4_ASSESSMENT.md)
 - [kkFileView 原始中文 README（完整格式清单、截图及历史说明）](doc/kkfileview/README.cn.md)
 - [kkFileView 原始英文 README](doc/kkfileview/README.md)
