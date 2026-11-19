@@ -20,7 +20,8 @@ public class Online3DFilePreviewImpl implements FilePreview {
 
     @Override
     public String filePreviewHandle(String url, Model model, FileAttribute fileAttribute) {
-        commonPreview.filePreviewHandle(url,model,fileAttribute);
-        return ONLINE3D_PREVIEW_PAGE;
+        // Propagate failed source preparation instead of showing an empty viewer.
+        String fallbackPage = commonPreview.filePreviewHandle(url, model, fileAttribute);
+        return fallbackPage == null ? ONLINE3D_PREVIEW_PAGE : fallbackPage;
     }
 }
