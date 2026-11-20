@@ -2918,12 +2918,7 @@ function start_project()
 							}));
 						//var n = i(".eml-iframe")[0].contentWindow.document;
 						var n=document.getElementById("divPagenation");
-						var test=e.text;
-if(test==""||test==null||test==undefined){
-    document.getElementById("divPagenation").innerHTML='空'; 
-}else{
- document.getElementById("divPagenation").innerHTML=e.text;
-};
+                        window.KkSafeMailBody.render(n, e);
 						
 						// console.log(e.text.replace(/\r?\n/g, ""));
 						i(n)

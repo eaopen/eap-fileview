@@ -2,7 +2,7 @@
 
 <html lang="en">
 <head>
-<title>${file.name}文件预览</title>
+<title>${file.name?html}文件预览</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1.0">
     <#include "*/commonHeader.ftl">
@@ -21,7 +21,7 @@
 <script type="text/javascript">
    	var url = '${finalUrl?js_string}';
 	var kkagent = '${kkagent}';
-    var baseUrl = '${baseUrl}'.endsWith('/') ? '${baseUrl}' : '${baseUrl}' + '/';
+    var baseUrl = '${baseUrl?js_string}'.endsWith('/') ? '${baseUrl?js_string}' : '${baseUrl?js_string}' + '/';
     if (kkagent === 'true' || !url.startsWith(baseUrl)) {
         url = baseUrl + 'getCorsFile?urlPath=' + encodeURIComponent(Base64.encode(url))+ "&key=${kkkey}";
     }
